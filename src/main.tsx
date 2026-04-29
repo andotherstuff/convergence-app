@@ -28,4 +28,17 @@ if ("serviceWorker" in navigator) {
         console.warn("Service worker registration failed:", err);
       });
   });
+
+  // When a newly-installed SW activates, it posts SW_ACTIVATED. Reload
+  // the page so the browser picks up the fresh HTML → fresh JS pair,
+  // avoiding "old HTML references missing/renamed JS" crashes after a
+  // deploy. Gate on `sessionStorage` to avoid reload loops.
+  const RELOAD_FLAG = "aos:sw-reloaded";
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    if (event.data?.type !== "SW_ACTIVATED") return;
+    if (sessionStorage.getItem(RELOAD_FLAG) === "1") return;
+    sessionStorage.setItem(RELOAD_FLAG, "1");
+    // Small delay so any in-flight work settles.
+    setTimeout(() => window.location.reload(), 100);
+  });
 }

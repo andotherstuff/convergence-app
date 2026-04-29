@@ -47,6 +47,30 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     });
   };
 
+  /**
+   * Nuclear recovery: unregister every service worker, drop every
+   * cache, then hard-reload. Fixes the "old HTML references missing
+   * JS" failure mode that a plain reload can't escape when the SW
+   * keeps serving a stale shell.
+   */
+  handleClearCacheAndReload = async () => {
+    try {
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+      if ("caches" in self) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch {
+      /* continue to reload regardless */
+    } finally {
+      // Force a bypass of any HTTP cache too.
+      window.location.href = window.location.pathname + "?_=" + Date.now();
+    }
+  };
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
@@ -89,18 +113,26 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </details>
             </div>
 
-            <div className="flex gap-2">
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <button
+                  onClick={this.handleReset}
+                  className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                >
+                  Try again
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
+                >
+                  Reload page
+                </button>
+              </div>
               <button
-                onClick={this.handleReset}
-                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                onClick={this.handleClearCacheAndReload}
+                className="w-full px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-md transition-colors"
               >
-                Try again
-              </button>
-              <button
-                onClick={() => window.location.reload()}
-                className="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-              >
-                Reload page
+                Clear cache & reload (if the problem persists)
               </button>
             </div>
           </div>
