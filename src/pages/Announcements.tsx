@@ -5,7 +5,9 @@ import { Layout } from "@/components/layout/Layout";
 import { Compose } from "@/components/feed/Compose";
 import { FeedItem } from "@/components/feed/FeedItem";
 import { FeedPostSkeleton } from "@/components/feed/FeedPost";
+import { NewPostsBanner } from "@/components/feed/NewPostsBanner";
 import { useAosFeed } from "@/hooks/useAosFeed";
+import { useAosLiveStream } from "@/hooks/useAosLiveStream";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { AOS_HASHTAG_DISPLAY, isOrganizer } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,8 @@ const Announcements = () => {
     isLoading,
     isError,
   } = useAosFeed("announcements");
+
+  const { pendingCount, flush } = useAosLiveStream("announcements");
 
   const { ref, inView } = useInView({ rootMargin: "400px 0px" });
 
@@ -62,6 +66,8 @@ const Announcements = () => {
             <Compose announcement />
           </div>
         )}
+
+        <NewPostsBanner count={pendingCount} onClick={flush} />
 
         {isError && (
           <div className="aos-card border-dashed p-8 text-center">
