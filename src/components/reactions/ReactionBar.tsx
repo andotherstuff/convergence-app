@@ -87,6 +87,7 @@ export function ReactionBar({
           >
             <span
               className={cn(
+                "font-emoji leading-none",
                 size === "sm" ? "text-sm" : "text-base",
                 isLoadingThis && "opacity-60"
               )}

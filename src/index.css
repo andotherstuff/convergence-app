@@ -53,7 +53,13 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Segoe UI", sans-serif;
+    "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji", "Twemoji Mozilla", "EmojiOne Color",
+    "Android Emoji";
+
+  --font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji", "Twemoji Mozilla", "EmojiOne Color", "Android Emoji",
+    sans-serif;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -437,6 +443,14 @@
       padding-left: 1rem;
     }
   }
+}
+
+/* Emoji-only font stack — forces color emoji fonts first so that
+   reaction pills and other user-provided emoji characters always
+   render as glyphs, not as text fallbacks (shortcodes or tofu). */
+@utility font-emoji {
+  font-family: var(--font-emoji);
+  font-variant-emoji: emoji;
 }
 
 /* Focus ring for keyboard users */
