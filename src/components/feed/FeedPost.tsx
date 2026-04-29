@@ -52,7 +52,8 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
         </div>
       )}
 
-      <div className="flex items-start gap-3">
+      {/* Header: avatar + name/time — only this row is indented past the avatar */}
+      <header className="flex items-center gap-2.5 mb-2">
         <Link to={`/${npub}`} className="shrink-0">
           <Avatar className="size-9 border border-border">
             <AvatarImage src={picture} alt={displayName} />
@@ -61,56 +62,51 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
             </AvatarFallback>
           </Avatar>
         </Link>
-
-        <div className="flex-1 min-w-0">
-          <header className="flex items-baseline gap-1.5 flex-wrap mb-0.5 leading-tight">
-            <Link
-              to={`/${npub}`}
-              className="font-semibold text-sm text-foreground hover:underline truncate max-w-[60%]"
-            >
-              {displayName}
-            </Link>
-            {nip05 && (
-              <span className="text-xs text-muted-foreground truncate hidden sm:inline">
-                {nip05.replace(/^_@/, "")}
-              </span>
-            )}
-            <span className="text-xs text-muted-foreground">·</span>
-            <Link
-              to={`/${nevent}`}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {timeAgo}
-            </Link>
-          </header>
-
-          <NoteContent
-            event={event}
-            className="text-[0.95rem] leading-relaxed"
-          />
-
-          <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
-            <ReactionBar target={event} size="sm" />
-            <button
-              type="button"
-              onClick={() => setShowReply((v) => !v)}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              aria-expanded={showReply}
-            >
-              <MessageCircle className="size-3.5" />
-              {showReply ? "Cancel" : "Reply"}
-            </button>
-          </div>
-
-          {showReply && (
-            <InlineReplyForm
-              parent={event}
-              onSuccess={() => setShowReply(false)}
-              onCancel={() => setShowReply(false)}
-            />
+        <div className="min-w-0 flex items-baseline gap-1.5 flex-wrap leading-tight">
+          <Link
+            to={`/${npub}`}
+            className="font-semibold text-sm text-foreground hover:underline truncate max-w-[60%]"
+          >
+            {displayName}
+          </Link>
+          {nip05 && (
+            <span className="text-xs text-muted-foreground truncate hidden sm:inline">
+              {nip05.replace(/^_@/, "")}
+            </span>
           )}
+          <span className="text-xs text-muted-foreground">·</span>
+          <Link
+            to={`/${nevent}`}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {timeAgo}
+          </Link>
         </div>
+      </header>
+
+      {/* Body: full-width, flush to the row edges */}
+      <NoteContent event={event} className="text-[0.95rem] leading-relaxed" />
+
+      <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+        <ReactionBar target={event} size="sm" />
+        <button
+          type="button"
+          onClick={() => setShowReply((v) => !v)}
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          aria-expanded={showReply}
+        >
+          <MessageCircle className="size-3.5" />
+          {showReply ? "Cancel" : "Reply"}
+        </button>
       </div>
+
+      {showReply && (
+        <InlineReplyForm
+          parent={event}
+          onSuccess={() => setShowReply(false)}
+          onCancel={() => setShowReply(false)}
+        />
+      )}
     </article>
   );
 }
@@ -118,17 +114,17 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
 export function FeedPostSkeleton() {
   return (
     <div className="aos-feed-row">
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-2.5 mb-2">
         <div className="size-9 rounded-full bg-secondary animate-pulse shrink-0" />
-        <div className="flex-1 space-y-2">
-          <div className="flex gap-2">
-            <div className="h-3 w-24 bg-secondary rounded animate-pulse" />
-            <div className="h-3 w-12 bg-secondary rounded animate-pulse" />
-          </div>
-          <div className="h-3 w-full bg-secondary rounded animate-pulse" />
-          <div className="h-3 w-4/5 bg-secondary rounded animate-pulse" />
-          <div className="h-3 w-3/5 bg-secondary rounded animate-pulse" />
+        <div className="flex gap-2 items-center">
+          <div className="h-3 w-24 bg-secondary rounded animate-pulse" />
+          <div className="h-3 w-12 bg-secondary rounded animate-pulse" />
         </div>
+      </div>
+      <div className="space-y-2">
+        <div className="h-3 w-full bg-secondary rounded animate-pulse" />
+        <div className="h-3 w-4/5 bg-secondary rounded animate-pulse" />
+        <div className="h-3 w-3/5 bg-secondary rounded animate-pulse" />
       </div>
     </div>
   );

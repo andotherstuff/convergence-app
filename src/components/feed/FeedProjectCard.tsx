@@ -20,9 +20,10 @@ interface FeedProjectCardProps {
 }
 
 /**
- * Compact row shown in the main feed whenever a project (kind 38459)
- * is published or updated. Same divider-row chrome as other feed items;
- * the project preview lives in an inner bordered box.
+ * Project share in the main feed. Renders like a social-media link
+ * preview: full-width cover image at the top of the card, title +
+ * summary beneath. The whole preview block is one tappable link to
+ * the project's detail page.
  */
 export function FeedProjectCard({ event }: FeedProjectCardProps) {
   const author = useAuthor(event.pubkey);
@@ -42,12 +43,13 @@ export function FeedProjectCard({ event }: FeedProjectCardProps) {
   return (
     <article className="aos-feed-row">
       {/* Context breadcrumb */}
-      <div className="text-[0.7rem] text-muted-foreground inline-flex items-center gap-1 mb-1.5">
+      <div className="text-[0.7rem] text-muted-foreground inline-flex items-center gap-1 mb-2">
         <Rocket className="size-3 shrink-0" />
         <span>Shared a project</span>
       </div>
 
-      <div className="flex items-start gap-3">
+      {/* Header: avatar + name/time */}
+      <header className="flex items-center gap-2.5 mb-3">
         <Link to={`/${npub}`} className="shrink-0">
           <Avatar className="size-9 border border-border">
             <AvatarImage src={picture} alt={displayName} />
@@ -56,71 +58,68 @@ export function FeedProjectCard({ event }: FeedProjectCardProps) {
             </AvatarFallback>
           </Avatar>
         </Link>
-
-        <div className="flex-1 min-w-0">
-          <header className="flex items-baseline gap-1.5 flex-wrap mb-2 leading-tight">
-            <Link
-              to={`/${npub}`}
-              className="font-semibold text-sm text-foreground hover:underline truncate max-w-[60%]"
-            >
-              {displayName}
-            </Link>
-            <span className="text-xs text-muted-foreground">·</span>
-            <span className="text-xs text-muted-foreground">{timeAgo}</span>
-          </header>
-
-          {/* Project preview — bordered inset, full width */}
+        <div className="min-w-0 flex items-baseline gap-1.5 flex-wrap leading-tight">
           <Link
-            to={`/projects/${project.naddr}`}
-            className="block group/link rounded-xl border border-border overflow-hidden hover:border-foreground/40 transition-colors"
+            to={`/${npub}`}
+            className="font-semibold text-sm text-foreground hover:underline truncate max-w-[60%]"
           >
-            <div className="grid grid-cols-[104px_1fr] sm:grid-cols-[140px_1fr]">
-              <div className="aspect-[4/3] bg-secondary overflow-hidden">
-                <img
-                  src={project.cover}
-                  alt={project.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover/link:scale-[1.03]"
-                />
-              </div>
-              <div className="p-3 sm:p-4 flex flex-col min-w-0">
-                <h3 className="text-sm sm:text-base font-semibold tracking-tight text-foreground mb-1 line-clamp-1 group-hover/link:underline">
-                  {project.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-3">
-                  {project.summary}
-                </p>
-                <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-foreground">
-                  View
-                  <ArrowUpRight className="size-3 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
-                </span>
-              </div>
-            </div>
+            {displayName}
           </Link>
-
-          <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
-            <ReactionBar target={event} size="sm" />
-            <button
-              type="button"
-              onClick={() => setShowReply((v) => !v)}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              aria-expanded={showReply}
-            >
-              <MessageCircle className="size-3.5" />
-              {showReply ? "Cancel" : "Comment"}
-            </button>
-          </div>
-
-          {showReply && (
-            <InlineReplyForm
-              parent={event}
-              placeholder="Leave a comment…"
-              onSuccess={() => setShowReply(false)}
-              onCancel={() => setShowReply(false)}
-            />
-          )}
+          <span className="text-xs text-muted-foreground">·</span>
+          <span className="text-xs text-muted-foreground">{timeAgo}</span>
         </div>
+      </header>
+
+      {/* Project preview — full-width OpenGraph-style card.
+          Uses <Link> so the whole area is tappable. */}
+      <Link
+        to={`/projects/${project.naddr}`}
+        className="block group/link rounded-2xl border border-border overflow-hidden hover:border-foreground/40 transition-colors bg-card"
+      >
+        <div className="aspect-[16/9] bg-secondary overflow-hidden">
+          <img
+            src={project.cover}
+            alt={project.title}
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover/link:scale-[1.02]"
+          />
+        </div>
+        <div className="p-4 flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-semibold tracking-tight text-foreground mb-1 line-clamp-1 group-hover/link:underline">
+              {project.title}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-snug line-clamp-2">
+              {project.summary}
+            </p>
+          </div>
+          <span className="shrink-0 inline-flex items-center justify-center size-8 rounded-full border border-border text-muted-foreground group-hover/link:bg-foreground group-hover/link:text-background group-hover/link:border-foreground transition-colors">
+            <ArrowUpRight className="size-4 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
+          </span>
+        </div>
+      </Link>
+
+      <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+        <ReactionBar target={event} size="sm" />
+        <button
+          type="button"
+          onClick={() => setShowReply((v) => !v)}
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          aria-expanded={showReply}
+        >
+          <MessageCircle className="size-3.5" />
+          {showReply ? "Cancel" : "Comment"}
+        </button>
       </div>
+
+      {showReply && (
+        <InlineReplyForm
+          parent={event}
+          placeholder="Leave a comment…"
+          onSuccess={() => setShowReply(false)}
+          onCancel={() => setShowReply(false)}
+        />
+      )}
     </article>
   );
 }

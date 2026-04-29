@@ -66,7 +66,7 @@ export function FeedComment({ event }: FeedCommentProps) {
   return (
     <article className="aos-feed-row">
       {/* Context breadcrumb */}
-      <div className="text-[0.7rem] text-muted-foreground inline-flex items-center gap-1 mb-1.5">
+      <div className="text-[0.7rem] text-muted-foreground inline-flex items-center gap-1 mb-2">
         <MessageSquareText className="size-3 shrink-0" />
         <span>
           Comment on{" "}
@@ -83,7 +83,8 @@ export function FeedComment({ event }: FeedCommentProps) {
         </span>
       </div>
 
-      <div className="flex items-start gap-3">
+      {/* Header: avatar + name/time */}
+      <header className="flex items-center gap-2.5 mb-2">
         <Link to={`/${npub}`} className="shrink-0">
           <Avatar className="size-9 border border-border">
             <AvatarImage src={picture} alt={displayName} />
@@ -92,46 +93,41 @@ export function FeedComment({ event }: FeedCommentProps) {
             </AvatarFallback>
           </Avatar>
         </Link>
-
-        <div className="flex-1 min-w-0">
-          <header className="flex items-baseline gap-1.5 flex-wrap mb-0.5 leading-tight">
-            <Link
-              to={`/${npub}`}
-              className="font-semibold text-sm text-foreground hover:underline truncate max-w-[60%]"
-            >
-              {displayName}
-            </Link>
-            <span className="text-xs text-muted-foreground">·</span>
-            <span className="text-xs text-muted-foreground">{timeAgo}</span>
-          </header>
-
-          <NoteContent
-            event={event}
-            className="text-[0.95rem] leading-relaxed"
-          />
-
-          <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
-            <ReactionBar target={event} size="sm" />
-            <button
-              type="button"
-              onClick={() => setShowReply((v) => !v)}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              aria-expanded={showReply}
-            >
-              <MessageCircle className="size-3.5" />
-              {showReply ? "Cancel" : "Reply"}
-            </button>
-          </div>
-
-          {showReply && (
-            <InlineReplyForm
-              parent={event}
-              onSuccess={() => setShowReply(false)}
-              onCancel={() => setShowReply(false)}
-            />
-          )}
+        <div className="min-w-0 flex items-baseline gap-1.5 flex-wrap leading-tight">
+          <Link
+            to={`/${npub}`}
+            className="font-semibold text-sm text-foreground hover:underline truncate max-w-[60%]"
+          >
+            {displayName}
+          </Link>
+          <span className="text-xs text-muted-foreground">·</span>
+          <span className="text-xs text-muted-foreground">{timeAgo}</span>
         </div>
+      </header>
+
+      {/* Body: full-width */}
+      <NoteContent event={event} className="text-[0.95rem] leading-relaxed" />
+
+      <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+        <ReactionBar target={event} size="sm" />
+        <button
+          type="button"
+          onClick={() => setShowReply((v) => !v)}
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          aria-expanded={showReply}
+        >
+          <MessageCircle className="size-3.5" />
+          {showReply ? "Cancel" : "Reply"}
+        </button>
       </div>
+
+      {showReply && (
+        <InlineReplyForm
+          parent={event}
+          onSuccess={() => setShowReply(false)}
+          onCancel={() => setShowReply(false)}
+        />
+      )}
     </article>
   );
 }
