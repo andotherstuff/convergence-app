@@ -41,95 +41,94 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
   return (
     <article
       className={cn(
-        "aos-card aos-card-hover p-5 md:p-6",
-        isAnnouncement &&
-          "border-l-4 border-l-foreground aos-bg-alt"
+        "aos-feed-row",
+        isAnnouncement && "aos-feed-row--announcement"
       )}
     >
       {isAnnouncement && (
-        <div className="flex items-center gap-1.5 mb-3 text-[0.7rem] uppercase tracking-[0.14em] font-semibold text-foreground">
-          <Megaphone className="size-3.5" />
+        <div className="flex items-center gap-1.5 mb-2 text-[0.65rem] uppercase tracking-[0.16em] font-semibold text-foreground">
+          <Megaphone className="size-3" />
           Announcement
         </div>
       )}
 
-      <header className="flex items-start gap-3 mb-3">
+      <div className="flex items-start gap-3">
         <Link to={`/${npub}`} className="shrink-0">
-          <Avatar className="size-10 border border-border">
+          <Avatar className="size-9 border border-border">
             <AvatarImage src={picture} alt={displayName} />
-            <AvatarFallback className="text-sm bg-secondary text-foreground">
+            <AvatarFallback className="text-xs bg-secondary text-foreground">
               {displayName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </Link>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2 flex-wrap">
+          <header className="flex items-baseline gap-1.5 flex-wrap mb-0.5 leading-tight">
             <Link
               to={`/${npub}`}
-              className="font-semibold text-sm text-foreground hover:underline truncate"
+              className="font-semibold text-sm text-foreground hover:underline truncate max-w-[60%]"
             >
               {displayName}
             </Link>
             {nip05 && (
-              <span className="text-xs text-muted-foreground truncate">
+              <span className="text-xs text-muted-foreground truncate hidden sm:inline">
                 {nip05.replace(/^_@/, "")}
               </span>
             )}
-          </div>
-          <Link
-            to={`/${nevent}`}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {timeAgo}
-          </Link>
-        </div>
-      </header>
+            <span className="text-xs text-muted-foreground">·</span>
+            <Link
+              to={`/${nevent}`}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {timeAgo}
+            </Link>
+          </header>
 
-      <div className="pl-[52px] -mt-1">
-        <NoteContent event={event} className="text-[0.95rem] leading-relaxed" />
-      </div>
-
-      <div className="pl-[52px] mt-4 flex items-center justify-between gap-3 flex-wrap">
-        <ReactionBar target={event} />
-        <button
-          type="button"
-          onClick={() => setShowReply((v) => !v)}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-full px-2.5 py-1 border border-border hover:bg-secondary"
-          aria-expanded={showReply}
-        >
-          <MessageCircle className="size-3.5" />
-          {showReply ? "Cancel" : "Reply"}
-        </button>
-      </div>
-
-      {showReply && (
-        <div className="pl-[52px]">
-          <InlineReplyForm
-            parent={event}
-            onSuccess={() => setShowReply(false)}
-            onCancel={() => setShowReply(false)}
+          <NoteContent
+            event={event}
+            className="text-[0.95rem] leading-relaxed"
           />
+
+          <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+            <ReactionBar target={event} size="sm" />
+            <button
+              type="button"
+              onClick={() => setShowReply((v) => !v)}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              aria-expanded={showReply}
+            >
+              <MessageCircle className="size-3.5" />
+              {showReply ? "Cancel" : "Reply"}
+            </button>
+          </div>
+
+          {showReply && (
+            <InlineReplyForm
+              parent={event}
+              onSuccess={() => setShowReply(false)}
+              onCancel={() => setShowReply(false)}
+            />
+          )}
         </div>
-      )}
+      </div>
     </article>
   );
 }
 
 export function FeedPostSkeleton() {
   return (
-    <div className="aos-card p-5 md:p-6">
-      <div className="flex items-start gap-3 mb-4">
-        <div className="size-10 rounded-full bg-secondary animate-pulse" />
+    <div className="aos-feed-row">
+      <div className="flex items-start gap-3">
+        <div className="size-9 rounded-full bg-secondary animate-pulse shrink-0" />
         <div className="flex-1 space-y-2">
-          <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
-          <div className="h-3 w-16 bg-secondary rounded animate-pulse" />
+          <div className="flex gap-2">
+            <div className="h-3 w-24 bg-secondary rounded animate-pulse" />
+            <div className="h-3 w-12 bg-secondary rounded animate-pulse" />
+          </div>
+          <div className="h-3 w-full bg-secondary rounded animate-pulse" />
+          <div className="h-3 w-4/5 bg-secondary rounded animate-pulse" />
+          <div className="h-3 w-3/5 bg-secondary rounded animate-pulse" />
         </div>
-      </div>
-      <div className="pl-[52px] space-y-2">
-        <div className="h-3 w-full bg-secondary rounded animate-pulse" />
-        <div className="h-3 w-4/5 bg-secondary rounded animate-pulse" />
-        <div className="h-3 w-3/5 bg-secondary rounded animate-pulse" />
       </div>
     </div>
   );

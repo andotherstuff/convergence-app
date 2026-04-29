@@ -4,8 +4,6 @@ import { nip19 } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
 import {
   ArrowUpRight,
-  Code2,
-  ExternalLink,
   MessageCircle,
   Rocket,
 } from "lucide-react";
@@ -22,8 +20,9 @@ interface FeedProjectCardProps {
 }
 
 /**
- * Compact card shown in the main feed whenever a project (kind 38459)
- * is published or updated. Links through to the full detail page.
+ * Compact row shown in the main feed whenever a project (kind 38459)
+ * is published or updated. Same divider-row chrome as other feed items;
+ * the project preview lives in an inner bordered box.
  */
 export function FeedProjectCard({ event }: FeedProjectCardProps) {
   const author = useAuthor(event.pubkey);
@@ -41,101 +40,87 @@ export function FeedProjectCard({ event }: FeedProjectCardProps) {
   });
 
   return (
-    <article className="aos-card aos-card-hover overflow-hidden">
-      {/* Activity header: "{author} posted a project" */}
-      <header className="flex items-center gap-3 px-5 pt-4 pb-3">
+    <article className="aos-feed-row">
+      {/* Context breadcrumb */}
+      <div className="text-[0.7rem] text-muted-foreground inline-flex items-center gap-1 mb-1.5">
+        <Rocket className="size-3 shrink-0" />
+        <span>Shared a project</span>
+      </div>
+
+      <div className="flex items-start gap-3">
         <Link to={`/${npub}`} className="shrink-0">
-          <Avatar className="size-8 border border-border">
+          <Avatar className="size-9 border border-border">
             <AvatarImage src={picture} alt={displayName} />
-            <AvatarFallback className="text-xs bg-secondary">
+            <AvatarFallback className="text-xs bg-secondary text-foreground">
               {displayName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </Link>
-        <div className="flex-1 min-w-0 text-sm">
+
+        <div className="flex-1 min-w-0">
+          <header className="flex items-baseline gap-1.5 flex-wrap mb-2 leading-tight">
+            <Link
+              to={`/${npub}`}
+              className="font-semibold text-sm text-foreground hover:underline truncate max-w-[60%]"
+            >
+              {displayName}
+            </Link>
+            <span className="text-xs text-muted-foreground">·</span>
+            <span className="text-xs text-muted-foreground">{timeAgo}</span>
+          </header>
+
+          {/* Project preview — bordered inset, full width */}
           <Link
-            to={`/${npub}`}
-            className="font-semibold text-foreground hover:underline"
+            to={`/projects/${project.naddr}`}
+            className="block group/link rounded-xl border border-border overflow-hidden hover:border-foreground/40 transition-colors"
           >
-            {displayName}
-          </Link>{" "}
-          <span className="text-muted-foreground">
-            shared a project · {timeAgo}
-          </span>
-        </div>
-        <Rocket className="size-4 text-muted-foreground shrink-0" />
-      </header>
-
-      {/* Project preview */}
-      <Link
-        to={`/projects/${project.naddr}`}
-        className="block group/link"
-      >
-        <div className="grid sm:grid-cols-[160px_1fr] gap-4 px-5 pb-4">
-          <div className="aspect-[4/3] bg-secondary rounded-lg overflow-hidden border border-border">
-            <img
-              src={project.cover}
-              alt={project.title}
-              loading="lazy"
-              className="w-full h-full object-cover transition-transform duration-500 group-hover/link:scale-[1.03]"
-            />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <h3 className="text-lg font-semibold tracking-tight text-foreground mb-1.5 group-hover/link:underline">
-              {project.title}
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 mb-3">
-              {project.summary}
-            </p>
-            <div className="mt-auto flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <ExternalLink className="size-3.5" />
-                <span className="truncate max-w-[160px]">
-                  {project.url
-                    .replace(/^https?:\/\//, "")
-                    .replace(/\/$/, "")}
+            <div className="grid grid-cols-[104px_1fr] sm:grid-cols-[140px_1fr]">
+              <div className="aspect-[4/3] bg-secondary overflow-hidden">
+                <img
+                  src={project.cover}
+                  alt={project.title}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover/link:scale-[1.03]"
+                />
+              </div>
+              <div className="p-3 sm:p-4 flex flex-col min-w-0">
+                <h3 className="text-sm sm:text-base font-semibold tracking-tight text-foreground mb-1 line-clamp-1 group-hover/link:underline">
+                  {project.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-3">
+                  {project.summary}
+                </p>
+                <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-foreground">
+                  View
+                  <ArrowUpRight className="size-3 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
                 </span>
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <Code2 className="size-3.5" />
-                <span className="truncate max-w-[160px]">
-                  {project.repo
-                    .replace(/^https?:\/\//, "")
-                    .replace(/\/$/, "")}
-                </span>
-              </span>
-              <span className="inline-flex items-center gap-1 text-foreground font-medium group-hover/link:underline">
-                View project
-                <ArrowUpRight className="size-3.5" />
-              </span>
+              </div>
             </div>
+          </Link>
+
+          <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+            <ReactionBar target={event} size="sm" />
+            <button
+              type="button"
+              onClick={() => setShowReply((v) => !v)}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              aria-expanded={showReply}
+            >
+              <MessageCircle className="size-3.5" />
+              {showReply ? "Cancel" : "Comment"}
+            </button>
           </div>
-        </div>
-      </Link>
 
-      <div className="px-5 pb-5 pt-3 border-t border-border flex items-center justify-between gap-3 flex-wrap">
-        <ReactionBar target={event} />
-        <button
-          type="button"
-          onClick={() => setShowReply((v) => !v)}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-full px-2.5 py-1 border border-border hover:bg-secondary"
-          aria-expanded={showReply}
-        >
-          <MessageCircle className="size-3.5" />
-          {showReply ? "Cancel" : "Comment"}
-        </button>
+          {showReply && (
+            <InlineReplyForm
+              parent={event}
+              placeholder="Leave a comment…"
+              onSuccess={() => setShowReply(false)}
+              onCancel={() => setShowReply(false)}
+            />
+          )}
+        </div>
       </div>
-
-      {showReply && (
-        <div className="px-5 pb-5">
-          <InlineReplyForm
-            parent={event}
-            placeholder="Leave a comment…"
-            onSuccess={() => setShowReply(false)}
-            onCancel={() => setShowReply(false)}
-          />
-        </div>
-      )}
     </article>
   );
 }

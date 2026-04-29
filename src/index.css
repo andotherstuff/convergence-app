@@ -377,6 +377,66 @@
       var(--background) 55%
     );
   }
+
+  /* ============================================
+     Feed list (divider-style, replaces cards)
+     ============================================ */
+
+  /* Wraps the whole feed. Full-bleed on mobile (hangs into page edges),
+     indented within the shell on desktop. */
+  .aos-feed-list {
+    /* On mobile, break out of the shell's 1rem horizontal padding so
+       rows run edge-to-edge. Inner padding on each row restores the
+       content gutter. */
+    margin-inline: -1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (min-width: 720px) {
+    .aos-feed-list {
+      margin-inline: 0;
+      border-top: none;
+    }
+  }
+
+  /* A single feed row — flows one after another separated by a thin
+     bottom border. */
+  .aos-feed-row {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.12s ease;
+  }
+
+  @media (min-width: 720px) {
+    .aos-feed-row {
+      padding: 1.25rem 0;
+    }
+  }
+
+  .aos-feed-row:hover {
+    background: var(--aos-bg-alt);
+  }
+
+  @media (min-width: 720px) {
+    .aos-feed-row:hover {
+      /* Don't apply full-bleed hover on desktop — looks odd in a fixed-
+         width column. */
+      background: transparent;
+    }
+  }
+
+  /* Announcement variant — subtle accent without heavy card chrome. */
+  .aos-feed-row--announcement {
+    background: var(--aos-bg-alt);
+    border-left: 3px solid var(--foreground);
+    padding-left: calc(1rem - 3px);
+  }
+
+  @media (min-width: 720px) {
+    .aos-feed-row--announcement {
+      padding-left: 1rem;
+    }
+  }
 }
 
 /* Focus ring for keyboard users */

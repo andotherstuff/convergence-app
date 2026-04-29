@@ -80,59 +80,63 @@ const Index = () => {
           </div>
         </header>
 
-        <div className="space-y-4 md:space-y-5">
-          {mode === "all" && <Compose />}
+        {mode === "all" && (
+          <div className="mb-4 md:mb-5">
+            <Compose />
+          </div>
+        )}
 
-          {isLoading && (
-            <>
-              <FeedPostSkeleton />
-              <FeedPostSkeleton />
-              <FeedPostSkeleton />
-            </>
-          )}
+        {isError && (
+          <div className="aos-card border-dashed p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              Couldn't load the feed. Check your relay connection and try
+              again.
+            </p>
+          </div>
+        )}
 
-          {isError && (
-            <div className="aos-card border-dashed p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                Couldn't load the feed. Check your relay connection and try
-                again.
-              </p>
-            </div>
-          )}
+        {!isLoading && !isError && items.length === 0 && (
+          <div className="aos-card border-dashed p-10 text-center">
+            <p className="text-base font-medium text-foreground mb-2">
+              {mode === "announcements"
+                ? "No announcements yet"
+                : "No posts yet"}
+            </p>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              {mode === "announcements"
+                ? "When organizers post official updates tagged " +
+                  AOS_HASHTAG_DISPLAY +
+                  " and #Announcement, they'll appear here."
+                : `Be the first to share something with the convergence community. Post anything tagged ${AOS_HASHTAG_DISPLAY} and it'll show up here.`}
+            </p>
+          </div>
+        )}
 
-          {!isLoading && !isError && items.length === 0 && (
-            <div className="aos-card border-dashed p-10 text-center">
-              <p className="text-base font-medium text-foreground mb-2">
-                {mode === "announcements"
-                  ? "No announcements yet"
-                  : "No posts yet"}
-              </p>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                {mode === "announcements"
-                  ? "When organizers post official updates tagged " +
-                    AOS_HASHTAG_DISPLAY +
-                    " and #Announcement, they'll appear here."
-                  : `Be the first to share something with the convergence community. Post anything tagged ${AOS_HASHTAG_DISPLAY} and it'll show up here.`}
-              </p>
-            </div>
-          )}
+        {(isLoading || items.length > 0) && (
+          <div className="aos-feed-list">
+            {isLoading && (
+              <>
+                <FeedPostSkeleton />
+                <FeedPostSkeleton />
+                <FeedPostSkeleton />
+              </>
+            )}
+            {items.map((event) => (
+              <FeedItem key={event.id} event={event} />
+            ))}
+            {hasNextPage && (
+              <div ref={ref} className="py-4">
+                {isFetchingNextPage && <FeedPostSkeleton />}
+              </div>
+            )}
+          </div>
+        )}
 
-          {items.map((event) => (
-            <FeedItem key={event.id} event={event} />
-          ))}
-
-          {hasNextPage && (
-            <div ref={ref} className="py-4">
-              {isFetchingNextPage && <FeedPostSkeleton />}
-            </div>
-          )}
-
-          {!hasNextPage && items.length > 0 && (
-            <div className="text-center py-8 text-xs text-muted-foreground">
-              You've reached the beginning.
-            </div>
-          )}
-        </div>
+        {!hasNextPage && items.length > 0 && (
+          <div className="text-center py-8 text-xs text-muted-foreground">
+            You've reached the beginning.
+          </div>
+        )}
 
         {!hasNextPage && items.length >= 10 && (
           <div className="mt-8 flex justify-center">

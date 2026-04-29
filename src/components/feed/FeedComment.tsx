@@ -21,7 +21,6 @@ function getRootContext(event: NostrEvent): {
   label: string;
   to: string | null;
 } {
-  // Uppercase A → addressable root (e.g. project)
   const A = event.tags.find(([n]) => n === "A")?.[1];
   if (A) {
     const [kindStr, pubkey, identifier] = A.split(":");
@@ -37,7 +36,6 @@ function getRootContext(event: NostrEvent): {
     return { label: `a ${kindStr}`, to: null };
   }
 
-  // Uppercase E → event root
   const E = event.tags.find(([n]) => n === "E")?.[1];
   if (E) {
     try {
@@ -66,66 +64,74 @@ export function FeedComment({ event }: FeedCommentProps) {
   const { label, to } = getRootContext(event);
 
   return (
-    <article className="aos-card aos-card-hover p-5 md:p-6">
-      <header className="flex items-start gap-3 mb-3">
+    <article className="aos-feed-row">
+      {/* Context breadcrumb */}
+      <div className="text-[0.7rem] text-muted-foreground inline-flex items-center gap-1 mb-1.5">
+        <MessageSquareText className="size-3 shrink-0" />
+        <span>
+          Comment on{" "}
+          {to ? (
+            <Link
+              to={to}
+              className="hover:text-foreground underline-offset-2 hover:underline"
+            >
+              {label}
+            </Link>
+          ) : (
+            label
+          )}
+        </span>
+      </div>
+
+      <div className="flex items-start gap-3">
         <Link to={`/${npub}`} className="shrink-0">
-          <Avatar className="size-10 border border-border">
+          <Avatar className="size-9 border border-border">
             <AvatarImage src={picture} alt={displayName} />
-            <AvatarFallback className="text-sm bg-secondary text-foreground">
+            <AvatarFallback className="text-xs bg-secondary text-foreground">
               {displayName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </Link>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2 flex-wrap">
+          <header className="flex items-baseline gap-1.5 flex-wrap mb-0.5 leading-tight">
             <Link
               to={`/${npub}`}
-              className="font-semibold text-sm text-foreground hover:underline truncate"
+              className="font-semibold text-sm text-foreground hover:underline truncate max-w-[60%]"
             >
               {displayName}
             </Link>
-            <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-              <MessageSquareText className="size-3" />
-              commented on {to ? (
-                <Link to={to} className="hover:text-foreground underline-offset-2 hover:underline">
-                  {label}
-                </Link>
-              ) : (
-                label
-              )}
-            </span>
-          </div>
-          <span className="text-xs text-muted-foreground">{timeAgo}</span>
-        </div>
-      </header>
+            <span className="text-xs text-muted-foreground">·</span>
+            <span className="text-xs text-muted-foreground">{timeAgo}</span>
+          </header>
 
-      <div className="pl-[52px] -mt-1">
-        <NoteContent event={event} className="text-[0.95rem] leading-relaxed" />
-      </div>
-
-      <div className="pl-[52px] mt-4 flex items-center justify-between gap-3 flex-wrap">
-        <ReactionBar target={event} />
-        <button
-          type="button"
-          onClick={() => setShowReply((v) => !v)}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-full px-2.5 py-1 border border-border hover:bg-secondary"
-          aria-expanded={showReply}
-        >
-          <MessageCircle className="size-3.5" />
-          {showReply ? "Cancel" : "Reply"}
-        </button>
-      </div>
-
-      {showReply && (
-        <div className="pl-[52px]">
-          <InlineReplyForm
-            parent={event}
-            onSuccess={() => setShowReply(false)}
-            onCancel={() => setShowReply(false)}
+          <NoteContent
+            event={event}
+            className="text-[0.95rem] leading-relaxed"
           />
+
+          <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+            <ReactionBar target={event} size="sm" />
+            <button
+              type="button"
+              onClick={() => setShowReply((v) => !v)}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              aria-expanded={showReply}
+            >
+              <MessageCircle className="size-3.5" />
+              {showReply ? "Cancel" : "Reply"}
+            </button>
+          </div>
+
+          {showReply && (
+            <InlineReplyForm
+              parent={event}
+              onSuccess={() => setShowReply(false)}
+              onCancel={() => setShowReply(false)}
+            />
+          )}
         </div>
-      )}
+      </div>
     </article>
   );
 }

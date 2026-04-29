@@ -10,7 +10,6 @@ import { genUserName } from "@/lib/genUserName";
 import {
   ANNOUNCEMENT_TAG,
   AOS_HASHTAG,
-  AOS_HASHTAG_DISPLAY,
   isOrganizer,
 } from "@/lib/constants";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,13 +18,29 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { cn } from "@/lib/utils";
 
-export function Compose() {
+interface ComposeProps {
+  /**
+   * The hashtag to tag this post with (without the leading '#').
+   * Defaults to the AOS hashtag.
+   */
+  hashtag?: string;
+  placeholder?: string;
+}
+
+export function Compose({
+  hashtag = AOS_HASHTAG,
+  placeholder,
+}: ComposeProps = {}) {
   const { user } = useCurrentUser();
   const author = useAuthor(user?.pubkey);
   const { mutateAsync: publish, isPending: isPublishing } = useNostrPublish();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const tagLower = hashtag.toLowerCase();
+  const tagDisplay = `#${hashtag}`;
+  const isAosTag = tagLower === AOS_HASHTAG;
 
   const [content, setContent] = useState("");
   const [imetaTags, setImetaTags] = useState<string[][]>([]);
@@ -39,7 +54,7 @@ export function Compose() {
             Join the conversation
           </p>
           <p className="text-sm text-muted-foreground">
-            Sign in with your Nostr account to post to the {AOS_HASHTAG_DISPLAY}{" "}
+            Sign in with your Nostr account to post to the {tagDisplay}{" "}
             feed.
           </p>
         </div>
@@ -51,7 +66,8 @@ export function Compose() {
   const metadata = author.data?.metadata;
   const displayName = metadata?.name || genUserName(user.pubkey);
   const picture = metadata?.picture;
-  const organizer = isOrganizer(user.pubkey);
+  // Announcements are AOS-specific — only show the toggle on AOS feeds.
+  const organizer = isAosTag && isOrganizer(user.pubkey);
 
   const handleImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -81,12 +97,12 @@ export function Compose() {
 
     // Ensure the hashtag appears in the content so it shows up in clients that
     // only linkify the text, and also add a t-tag for relay-level filtering.
-    const hashtagRegex = new RegExp(`#${AOS_HASHTAG}\\b`, "i");
+    const hashtagRegex = new RegExp(`#${tagLower}\\b`, "i");
     const finalContent = hashtagRegex.test(trimmed)
       ? trimmed
-      : `${trimmed}\n\n${AOS_HASHTAG_DISPLAY}`;
+      : `${trimmed}\n\n${tagDisplay}`;
 
-    const tags: string[][] = [["t", AOS_HASHTAG]];
+    const tags: string[][] = [["t", tagLower]];
     if (asAnnouncement && organizer) {
       tags.push(["t", ANNOUNCEMENT_TAG]);
     }
@@ -102,7 +118,12 @@ export function Compose() {
       setImetaTags([]);
       setAsAnnouncement(false);
       toast({ title: asAnnouncement ? "Announcement posted!" : "Posted!" });
-      queryClient.invalidateQueries({ queryKey: ["aos-feed"] });
+      if (isAosTag) {
+        queryClient.invalidateQueries({ queryKey: ["aos-feed"] });
+      }
+      queryClient.invalidateQueries({
+        queryKey: ["hashtag-feed", tagLower],
+      });
     } catch (err) {
       toast({
         title: "Failed to post",
@@ -134,9 +155,12 @@ export function Compose() {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder={
-            asAnnouncement
+            placeholder ??
+            (asAnnouncement
               ? "Write an announcement to the convergence…"
-              : "Share something with the convergence…"
+              : isAosTag
+              ? "Share something with the convergence…"
+              : `Post to ${tagDisplay}…`)
           }
           rows={3}
           className="flex-1 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-[0.95rem] placeholder:text-muted-foreground/70"
@@ -191,7 +215,7 @@ export function Compose() {
 
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground hidden md:inline">
-            {AOS_HASHTAG_DISPLAY}
+            {tagDisplay}
           </span>
           <Button
             type="submit"
