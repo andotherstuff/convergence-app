@@ -3,7 +3,6 @@ import { useSeoMeta } from "@unhead/react";
 import {
   CalendarDays,
   MapPin,
-  Clock,
   ExternalLink,
   MessageSquareText,
 } from "lucide-react";
@@ -204,18 +203,6 @@ const Schedule = () => {
                     </ul>
                   </>
                 )}
-
-                <div className="mt-8 aos-bg-soft rounded-xl p-4 md:p-5 flex items-start gap-3">
-                  <Clock className="size-4 mt-0.5 text-muted-foreground shrink-0" />
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Detailed session-by-session programming will be announced
-                    closer to the event. Subscribe to the{" "}
-                    <span className="text-foreground font-medium">
-                      #AOSConvergence
-                    </span>{" "}
-                    feed for updates.
-                  </p>
-                </div>
               </div>
             </article>
 

@@ -10,6 +10,8 @@ import {
   Upload,
   X,
   Monitor,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,7 @@ import { useNostrPublish } from "@/hooks/useNostrPublish";
 import { useUploadFile } from "@/hooks/useUploadFile";
 import { useProject } from "@/hooks/useProject";
 import { useToast } from "@/hooks/useToast";
+import { parseProject, type Project } from "@/lib/project";
 import {
   AOS_HASHTAG,
   AOS_HASHTAG_DISPLAY,
@@ -176,6 +179,16 @@ const ProjectSubmit = () => {
     setScreenshots((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const moveScreenshot = (idx: number, direction: -1 | 1) => {
+    setScreenshots((prev) => {
+      const target = idx + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+  };
+
   const validate = (): boolean => {
     const next: Record<string, string> = {};
     if (!title.trim()) next.title = "Title is required";
@@ -229,15 +242,30 @@ const ProjectSubmit = () => {
         identifier: d,
       });
 
+      // Seed the query cache with the freshly-signed event so the detail
+      // page renders immediately — relays may take a moment to propagate.
+      const parsed = parseProject(event);
+      if (parsed) {
+        queryClient.setQueryData<Project>(
+          ["project", event.pubkey, d],
+          parsed
+        );
+        // Also merge into the projects list cache so /projects shows it.
+        queryClient.setQueryData<Project[] | undefined>(
+          ["projects", AOS_HASHTAG],
+          (prev) => {
+            if (!prev) return [parsed];
+            const filtered = prev.filter(
+              (p) => !(p.pubkey === parsed.pubkey && p.d === parsed.d)
+            );
+            return [parsed, ...filtered];
+          }
+        );
+      }
+
       toast({
         title: existingD ? "Project updated" : "Project submitted!",
         description: "Your project is now live in the showcase.",
-      });
-
-      // Invalidate queries and navigate
-      queryClient.invalidateQueries({ queryKey: ["projects", AOS_HASHTAG] });
-      queryClient.invalidateQueries({
-        queryKey: ["project", event.pubkey, d],
       });
 
       navigate(`/projects/${naddr}`);
@@ -470,31 +498,69 @@ const ProjectSubmit = () => {
                 <Label>App screenshots</Label>
                 <p className="text-xs text-muted-foreground -mt-1">
                   Optional. Mobile or desktop screenshots shown in a gallery
-                  below your project description. Any size works.
+                  below your project description. Any size works. Use the
+                  arrows to reorder.
                 </p>
 
                 {screenshots.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {screenshots.map((img, i) => (
-                      <div
-                        key={img}
-                        className="relative group rounded-lg overflow-hidden border border-border bg-secondary"
-                      >
-                        <img
-                          src={img}
-                          alt={`Screenshot ${i + 1}`}
-                          className="w-full h-auto block"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeScreenshot(i)}
-                          className="absolute top-1.5 right-1.5 p-1 rounded-full bg-background/95 border border-border hover:bg-destructive hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 shadow-sm"
-                          aria-label={`Remove screenshot ${i + 1}`}
+                    {screenshots.map((img, i) => {
+                      const isFirst = i === 0;
+                      const isLast = i === screenshots.length - 1;
+                      return (
+                        <div
+                          key={img}
+                          className="relative group rounded-lg overflow-hidden border border-border bg-secondary"
                         >
-                          <X className="size-3.5" />
-                        </button>
-                      </div>
-                    ))}
+                          <img
+                            src={img}
+                            alt={`Screenshot ${i + 1}`}
+                            className="w-full h-auto block"
+                          />
+
+                          {/* Position badge */}
+                          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-background/95 border border-border text-[10px] font-medium tabular-nums shadow-sm">
+                            {i + 1} / {screenshots.length}
+                          </div>
+
+                          {/* Remove */}
+                          <button
+                            type="button"
+                            onClick={() => removeScreenshot(i)}
+                            className="absolute top-1.5 right-1.5 p-1 rounded-full bg-background/95 border border-border hover:bg-destructive hover:text-destructive-foreground transition-colors shadow-sm"
+                            aria-label={`Remove screenshot ${i + 1}`}
+                          >
+                            <X className="size-3.5" />
+                          </button>
+
+                          {/* Reorder controls */}
+                          {screenshots.length > 1 && (
+                            <div className="absolute bottom-1.5 right-1.5 flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => moveScreenshot(i, -1)}
+                                disabled={isFirst}
+                                className="p-1 rounded-md bg-background/95 border border-border hover:bg-foreground hover:text-background transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background/95 disabled:hover:text-foreground"
+                                aria-label={`Move screenshot ${i + 1} earlier`}
+                                title="Move earlier"
+                              >
+                                <ArrowUp className="size-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => moveScreenshot(i, 1)}
+                                disabled={isLast}
+                                className="p-1 rounded-md bg-background/95 border border-border hover:bg-foreground hover:text-background transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background/95 disabled:hover:text-foreground"
+                                aria-label={`Move screenshot ${i + 1} later`}
+                                title="Move later"
+                              >
+                                <ArrowDown className="size-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
