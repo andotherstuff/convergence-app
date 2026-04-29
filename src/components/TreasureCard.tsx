@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { nip19 } from "nostr-tools";
 import type { NostrEvent } from "@nostrify/nostrify";
-import {
-  ExternalLink,
-  Eye,
-  EyeOff,
-  Gauge,
-  MapPin,
-  Mountain,
-  Package,
-  Sparkles,
-} from "lucide-react";
+import { ExternalLink, Eye, EyeOff, MapPin, Sparkles } from "lucide-react";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useAddressableEvent } from "@/hooks/useAddressableEvent";
 import { genUserName } from "@/lib/genUserName";
@@ -66,10 +57,6 @@ function TreasureCardBody({
   const name = tag("name") ?? "Untitled Treasure";
   const image = tag("image");
   const rawLocation = tag("location");
-  const difficulty = tag("difficulty");
-  const terrain = tag("terrain");
-  const size = tag("size");
-  const cacheType = tag("cache-type");
   const status = tag("status");
   const hint = tag("hint");
   const description = event.content?.trim() ?? "";
@@ -166,40 +153,6 @@ function TreasureCardBody({
           </p>
         )}
 
-        {/* Stats strip */}
-        {(difficulty || terrain || size || cacheType) && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-            {difficulty && (
-              <StatBox
-                icon={<Gauge className="size-3.5" />}
-                label="Difficulty"
-                value={renderStars(difficulty)}
-              />
-            )}
-            {terrain && (
-              <StatBox
-                icon={<Mountain className="size-3.5" />}
-                label="Terrain"
-                value={renderStars(terrain)}
-              />
-            )}
-            {size && (
-              <StatBox
-                icon={<Package className="size-3.5" />}
-                label="Size"
-                value={size}
-              />
-            )}
-            {cacheType && (
-              <StatBox
-                icon={<MapPin className="size-3.5" />}
-                label="Type"
-                value={cacheType}
-              />
-            )}
-          </div>
-        )}
-
         {/* Hint — geocaching convention is ROT13. Let the user reveal it. */}
         {hint && (
           <div className="rounded-lg border border-dashed border-border p-2.5">
@@ -253,45 +206,6 @@ function TreasureCardBody({
         </div>
       </div>
     </div>
-  );
-}
-
-function StatBox({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-border bg-background/60 p-2">
-      <div className="flex items-center gap-1 text-muted-foreground text-[0.6rem] uppercase tracking-wider font-medium mb-0.5">
-        {icon}
-        {label}
-      </div>
-      <div className="text-sm font-medium text-foreground capitalize truncate">
-        {value}
-      </div>
-    </div>
-  );
-}
-
-/** Render a numeric stat (e.g. "3" or "2.5") as filled/empty stars (max 5). */
-function renderStars(value: string) {
-  const n = Number.parseFloat(value);
-  if (!Number.isFinite(n)) return value;
-  const clamped = Math.max(0, Math.min(5, n));
-  const full = Math.floor(clamped);
-  const half = clamped - full >= 0.5;
-  const empty = 5 - full - (half ? 1 : 0);
-  return (
-    <span className="inline-flex items-center gap-px text-foreground">
-      {"★".repeat(full)}
-      {half ? "⯨" : ""}
-      <span className="text-muted-foreground/50">{"☆".repeat(Math.max(0, empty))}</span>
-    </span>
   );
 }
 
