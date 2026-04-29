@@ -8,6 +8,7 @@ import { Suspense } from 'react';
 import NostrProvider from '@/components/NostrProvider';
 import { NostrSync } from '@/components/NostrSync';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { NotificationBridge } from '@/components/NotificationBridge';
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { NostrLoginProvider } from '@nostrify/react/login';
@@ -59,6 +60,7 @@ export function App() {
                     <AppRouter />
                   </Suspense>
                   <InstallPrompt />
+                  <NotificationBridge />
                 </TooltipProvider>
               </NWCProvider>
             </NostrProvider>

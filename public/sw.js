@@ -55,6 +55,53 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+/**
+ * Focus the most-recently-used AOS Convergence window when a
+ * notification is clicked, or open a new one if none is open. If the
+ * notification carries a `data.path`, navigate to it.
+ *
+ * Currently the client fires notifications via `new Notification(...)`
+ * (foreground only), which handles its own `onclick`. This handler is
+ * here for resilience — if a notification was shown via
+ * `registration.showNotification(...)` (e.g. future Web Push), it'll
+ * be routed correctly.
+ */
+self.addEventListener("notificationclick", (event) => {
+  const notif = event.notification;
+  notif.close();
+  const path =
+    (notif.data && typeof notif.data.path === "string" && notif.data.path) ||
+    "/";
+  const target = new URL(path, self.location.origin).href;
+
+  event.waitUntil(
+    (async () => {
+      const all = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      for (const client of all) {
+        if ("focus" in client) {
+          try {
+            await client.focus();
+            if ("navigate" in client) {
+              try {
+                await client.navigate(target);
+              } catch {
+                /* some browsers disallow cross-origin / closed-tab navigate */
+              }
+            }
+            return;
+          } catch {
+            /* try next */
+          }
+        }
+      }
+      await self.clients.openWindow(target);
+    })()
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   // Only handle same-origin GETs.

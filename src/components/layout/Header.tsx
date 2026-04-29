@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { LogOut, Menu, UserIcon, UserPlus, X } from "lucide-react";
+import { LogOut, Menu, Settings as SettingsIcon, UserIcon, UserPlus, X } from "lucide-react";
 import { nip19 } from "nostr-tools";
 import AuthDialog from "@/components/auth/AuthDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -165,6 +165,21 @@ export function Header() {
               {/* Account section
                   (On mobile, primary nav lives in the fixed BottomNav —
                   so the hamburger panel is purely for account actions.) */}
+              {/* Settings link — always visible (notifications etc. don't
+                  require login). Rendered as a normal row so its spacing
+                  matches other menu items. */}
+              {currentUser && profileHref ? null : (
+                <Link
+                  to="/settings"
+                  onClick={closeMenu}
+                  className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary/60 transition-colors"
+                >
+                  <span className="flex items-center justify-center size-8 rounded-full bg-secondary">
+                    <SettingsIcon className="size-4 text-muted-foreground" />
+                  </span>
+                  <span className="text-sm font-medium">Settings</span>
+                </Link>
+              )}
               {currentUser && profileHref ? (
                 <>
                   {/* Current profile header */}
@@ -225,6 +240,16 @@ export function Header() {
 
                   <div className="h-px bg-border my-2" />
 
+                  <Link
+                    to="/settings"
+                    onClick={closeMenu}
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary/60 transition-colors"
+                  >
+                    <span className="flex items-center justify-center size-8 rounded-full bg-secondary">
+                      <SettingsIcon className="size-4 text-muted-foreground" />
+                    </span>
+                    <span className="text-sm font-medium">Settings</span>
+                  </Link>
                   <button
                     type="button"
                     onClick={openAuth}
