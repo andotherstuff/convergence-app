@@ -2,6 +2,10 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 
 import Index from "./pages/Index";
+import Schedule from "./pages/Schedule";
+import Projects from "./pages/Projects";
+import ProjectSubmit from "./pages/ProjectSubmit";
+import ProjectDetail from "./pages/ProjectDetail";
 import { NIP19Page } from "./pages/NIP19Page";
 import NotFound from "./pages/NotFound";
 
@@ -11,6 +15,10 @@ export function AppRouter() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/schedule" element={<Schedule />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/submit" element={<ProjectSubmit />} />
+        <Route path="/projects/:naddr" element={<ProjectDetail />} />
         {/* NIP-19 route for npub1, note1, naddr1, nevent1, nprofile1 */}
         <Route path="/:nip19" element={<NIP19Page />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
