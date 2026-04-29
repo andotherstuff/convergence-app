@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { LogOut, Menu, UserIcon, UserPlus, X } from "lucide-react";
 import { nip19 } from "nostr-tools";
@@ -50,9 +50,19 @@ export function Header() {
     ? `/${nip19.npubEncode(currentUser.pubkey)}`
     : null;
 
+  // Dismiss the menu on Escape.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMenu();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md bg-background/90 border-b border-border">
-      <div className="aos-shell">
+      <div className="aos-shell relative">
         <nav className="flex items-center justify-between gap-4 py-3 md:py-4">
           {/* Brand */}
           <Link
@@ -131,10 +141,27 @@ export function Header() {
           </div>
         </nav>
 
-        {/* Unified menu panel (shows on all breakpoints) */}
+        {/* Unified menu panel — floats over the page as a popover. */}
         {open && (
-          <div className="pb-4 pt-1 border-t border-border -mx-1">
-            <div className="flex flex-col gap-1 pt-3 px-1">
+          <>
+            {/* Backdrop — click to dismiss. Starts just below the header
+                so the hamburger button stays interactive and visible. */}
+            <button
+              type="button"
+              aria-label="Close menu"
+              onClick={closeMenu}
+              className="fixed inset-0 top-full z-30 bg-foreground/10 backdrop-blur-[1px] cursor-default"
+            />
+            <div
+              role="menu"
+              aria-label="Account menu"
+              className={cn(
+                "absolute z-40 right-4 md:right-6 top-full mt-2",
+                "w-[min(22rem,calc(100vw-2rem))]",
+                "rounded-xl border border-border bg-background shadow-lg",
+                "p-2 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
+              )}
+            >
               {/* Account section
                   (On mobile, primary nav lives in the fixed BottomNav —
                   so the hamburger panel is purely for account actions.) */}
@@ -232,7 +259,7 @@ export function Header() {
                 </div>
               )}
             </div>
-          </div>
+          </>
         )}
       </div>
 
