@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { NKinds, type NostrEvent } from "@nostrify/nostrify";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Send } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { EmojiTextarea } from "@/components/EmojiTextarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -145,16 +145,18 @@ export function InlineReplyForm({
             {displayName.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <Textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder={placeholder}
-          rows={2}
-          autoFocus
-          disabled={isBusy}
-          className="flex-1 resize-none text-sm min-h-0 py-1.5"
-          maxLength={2000}
-        />
+        <div className="flex-1 min-w-0">
+          <EmojiTextarea
+            value={content}
+            onChange={setContent}
+            placeholder={placeholder}
+            rows={2}
+            autoFocus
+            disabled={isBusy}
+            className="resize-none text-sm min-h-0 py-1.5"
+            maxLength={2000}
+          />
+        </div>
       </div>
       <div className="flex items-center justify-end gap-2">
         {onCancel && (

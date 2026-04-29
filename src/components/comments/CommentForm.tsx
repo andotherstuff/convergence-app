@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { EmojiTextarea } from '@/components/EmojiTextarea';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePostComment } from '@/hooks/usePostComment';
 import { LoginArea } from '@/components/auth/LoginArea';
@@ -59,9 +59,9 @@ export function CommentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <Textarea
+      <EmojiTextarea
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={setContent}
         placeholder={placeholder}
         className={cn("rounded-2xl resize-none", compact ? "min-h-[80px]" : "min-h-[100px]")}
         disabled={isPending}

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSeoMeta } from "@unhead/react";
 import { useInView } from "react-intersection-observer";
-import { Megaphone, MessagesSquare } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Megaphone, MessagesSquare, Rocket } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Compose } from "@/components/feed/Compose";
 import { FeedItem } from "@/components/feed/FeedItem";
@@ -64,6 +65,7 @@ const Index = () => {
         {/* Composer.
             "All" mode → regular composer (everyone sees it).
             "Announcements" mode → organizer-only announcement composer.
+            "Projects" mode → no composer (use the dedicated submit flow).
             Logged-out users and non-organizers see no composer in the
             Announcements tab. */}
         {mode === "all" && (
@@ -74,6 +76,19 @@ const Index = () => {
         {mode === "announcements" && viewerIsOrganizer && (
           <div className="mb-4 md:mb-5">
             <Compose announcement />
+          </div>
+        )}
+        {mode === "projects" && (
+          <div className="mb-4 md:mb-5 flex items-center justify-between gap-3 flex-wrap aos-card p-4">
+            <p className="text-sm text-muted-foreground">
+              Share something you're building with the AOS community.
+            </p>
+            <Button asChild size="sm" className="rounded-full">
+              <Link to="/projects/submit">
+                <Rocket className="size-4 mr-1.5" />
+                Submit a project
+              </Link>
+            </Button>
           </div>
         )}
 
@@ -89,6 +104,12 @@ const Index = () => {
               onClick={() => setMode("all")}
               icon={<MessagesSquare className="size-3.5" />}
               label="All"
+            />
+            <ModeButton
+              active={mode === "projects"}
+              onClick={() => setMode("projects")}
+              icon={<Rocket className="size-3.5" />}
+              label="Projects"
             />
             <ModeButton
               active={mode === "announcements"}
@@ -113,6 +134,8 @@ const Index = () => {
             <p className="text-base font-medium text-foreground mb-2">
               {mode === "announcements"
                 ? "No announcements yet"
+                : mode === "projects"
+                ? "No projects shared yet"
                 : "No posts yet"}
             </p>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
@@ -120,6 +143,8 @@ const Index = () => {
                 ? "When organizers post official updates tagged " +
                   AOS_HASHTAG_DISPLAY +
                   " and #Announcement, they'll appear here."
+                : mode === "projects"
+                ? `Be the first to share what you're building with the convergence. Submissions tagged ${AOS_HASHTAG_DISPLAY} show up here.`
                 : `Be the first to share something with the convergence community. Post anything tagged ${AOS_HASHTAG_DISPLAY} and it'll show up here.`}
             </p>
           </div>

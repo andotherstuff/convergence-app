@@ -12,7 +12,7 @@ import {
   AOS_HASHTAG,
   isOrganizer,
 } from "@/lib/constants";
-import { Textarea } from "@/components/ui/textarea";
+import { EmojiTextarea } from "@/components/EmojiTextarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LoginArea } from "@/components/auth/LoginArea";
@@ -171,24 +171,26 @@ export function Compose({
           </AvatarFallback>
         </Avatar>
 
-        <Textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder={
-            placeholder ??
-            (asAnnouncement
-              ? "Write an announcement to the convergence…"
-              : isAosTag
-              ? "Share something with the convergence…"
-              : `Post to ${tagDisplay}…`)
-          }
-          rows={3}
-          className="flex-1 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-[0.95rem] placeholder:text-muted-foreground/70"
-          maxLength={4000}
-        />
+        <div className="flex-1 min-w-0">
+          <EmojiTextarea
+            value={content}
+            onChange={setContent}
+            placeholder={
+              placeholder ??
+              (asAnnouncement
+                ? "Write an announcement to the convergence…"
+                : isAosTag
+                ? "Share something with the convergence…"
+                : `Post to ${tagDisplay}…`)
+            }
+            rows={3}
+            className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-[0.95rem] placeholder:text-muted-foreground/70"
+            maxLength={4000}
+          />
+        </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 pl-[48px] border-t border-border pt-3 flex-wrap">
+      <div className="flex items-center justify-between gap-2 border-t border-border pt-3 flex-wrap">
         <div className="flex items-center gap-3">
           <label
             className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-pointer text-sm transition-colors"

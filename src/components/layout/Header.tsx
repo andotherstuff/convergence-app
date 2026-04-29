@@ -22,20 +22,13 @@ export function Header() {
             className="flex items-center gap-3 shrink-0"
             onClick={() => setOpen(false)}
           >
-            <div className="size-9 rounded-xl bg-foreground flex items-center justify-center shrink-0">
-              <svg
-                viewBox="0 0 64 64"
-                className="size-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                aria-hidden
-              >
-                <circle cx="22" cy="32" r="11" className="text-background" />
-                <circle cx="42" cy="32" r="11" className="text-background" />
-              </svg>
-            </div>
+            <img
+              src="/AOS_Official.svg"
+              alt=""
+              className="size-10 rounded-xl shrink-0 dark:invert"
+              width={40}
+              height={40}
+            />
             <div className="flex flex-col leading-tight">
               <span className="text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground font-medium">
                 AOS

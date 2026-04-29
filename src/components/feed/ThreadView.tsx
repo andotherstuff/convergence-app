@@ -7,7 +7,7 @@ import { ArrowLeft, Loader2, Megaphone, Send } from "lucide-react";
 import type { NostrEvent } from "@nostrify/nostrify";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { EmojiTextarea } from "@/components/EmojiTextarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NoteContent } from "@/components/NoteContent";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
@@ -295,16 +295,18 @@ function ReplyComposer({ root }: { root: NostrEvent }) {
             {displayName.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <Textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Write a reply…"
-          rows={3}
-          className="flex-1 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-[0.95rem] placeholder:text-muted-foreground/70"
-          maxLength={4000}
-        />
+        <div className="flex-1 min-w-0">
+          <EmojiTextarea
+            value={content}
+            onChange={setContent}
+            placeholder="Write a reply…"
+            rows={3}
+            className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-[0.95rem] placeholder:text-muted-foreground/70"
+            maxLength={4000}
+          />
+        </div>
       </div>
-      <div className="flex items-center justify-end gap-2 pl-[48px] border-t border-border pt-3">
+      <div className="flex items-center justify-end gap-2 border-t border-border pt-3">
         <Button
           type="submit"
           disabled={!canSubmit}
