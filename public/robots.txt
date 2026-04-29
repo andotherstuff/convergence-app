@@ -1,2 +1,53 @@
+# AOS Convergence
+# Fully open to crawlers, including social-media link preview scrapers
+# (Facebook, Twitter/X, LinkedIn, Slack, Discord, Telegram, iMessage,
+# Nostr clients, etc.).
+
 User-agent: *
+Allow: /
+
+# Explicit allowlist for common social / OG scrapers. The wildcard
+# rule above already covers them, but some scrapers only honor their
+# own User-agent entry, so we spell them out.
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: facebookcatalog
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: Slackbot-LinkExpanding
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
 Allow: /
