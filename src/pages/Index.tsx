@@ -51,15 +51,20 @@ const Index = () => {
   return (
     <Layout>
       <section className="aos-shell pt-8 md:pt-12 pb-24">
-        <header className="mb-6 md:mb-8 flex items-end justify-between gap-4 flex-wrap">
-          <div>
-            <div className="aos-kicker mb-2">The Feed</div>
-            <h1 className="aos-display text-3xl md:text-4xl">
-              {AOS_HASHTAG_DISPLAY}
-            </h1>
-          </div>
+        <header className="mb-6 md:mb-8">
+          <div className="aos-kicker mb-2">The Feed</div>
+          <h1 className="aos-display text-3xl md:text-4xl">
+            {AOS_HASHTAG_DISPLAY}
+          </h1>
+        </header>
 
-          {/* Mode toggle — segmented control */}
+        {/* Composer */}
+        <div className="mb-4 md:mb-5">
+          <Compose />
+        </div>
+
+        {/* Mode toggle — segmented control, sits above the feed content */}
+        <div className="mb-4 md:mb-5 flex justify-start">
           <div
             role="tablist"
             aria-label="Feed filter"
@@ -78,13 +83,7 @@ const Index = () => {
               label="Announcements"
             />
           </div>
-        </header>
-
-        {mode === "all" && (
-          <div className="mb-4 md:mb-5">
-            <Compose />
-          </div>
-        )}
+        </div>
 
         {isError && (
           <div className="aos-card border-dashed p-8 text-center">
