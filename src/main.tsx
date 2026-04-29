@@ -15,3 +15,17 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </ErrorBoundary>
 );
+
+// Register the PWA service worker. Kept out of `App.tsx` because the
+// React tree shouldn't block on SW registration, and `main.tsx` runs
+// exactly once per page load.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.warn("Service worker registration failed:", err);
+      });
+  });
+}

@@ -3,15 +3,30 @@
   "short_name": "AOS Convergence",
   "description": "A curated three-day gathering for builders, researchers, funders, and community leaders working to expand human agency through open systems.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#fbfaf8",
   "theme_color": "#0f100f",
+  "categories": ["social", "news", "events"],
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
