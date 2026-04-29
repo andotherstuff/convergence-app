@@ -1,20 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import data from "@emoji-mart/data";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-import { Picker } from "emoji-mart";
+import { useState, type ReactNode } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useIsMobile } from "@/hooks/useIsMobile";
-import { useTheme } from "@/hooks/useTheme";
-
-interface EmojiMartEmoji {
-  id: string;
-  native?: string;
-  shortcodes?: string;
-}
+import { cn } from "@/lib/utils";
 
 interface EmojiPickerProps {
   children: ReactNode;
@@ -22,72 +12,83 @@ interface EmojiPickerProps {
   disabled?: boolean;
 }
 
-/** Resolve the effective light/dark theme. */
-function resolveMode(theme: "light" | "dark" | "system"): "light" | "dark" {
-  if (theme === "system") {
-    return typeof window !== "undefined" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  }
-  return theme;
-}
-
 /**
- * Emoji picker powered by emoji-mart. Constructs the Picker custom
- * element imperatively (Ditto pattern) to sidestep the "Illegal
- * constructor" error `@emoji-mart/react` can hit under popover
- * remount cycles.
- *
- * The picker is given its native default width (~352px); we size the
- * popover to match. Any attempt to force emoji-mart into 100% width
- * via `:host` overrides proved unreliable because its shadow root
- * attaches asynchronously during `connectedCallback`.
+ * Curated reaction emoji palette. A small, fast, reliable alternative
+ * to a full emoji keyboard — which is the right UX for reactions
+ * anyway (Slack/Discord/Twitter/Mastodon all surface a short palette
+ * first). Grouped by mood so users can scan quickly.
  */
+const EMOJI_GROUPS: { label: string; emojis: string[] }[] = [
+  {
+    label: "Common",
+    emojis: ["👍", "❤️", "🔥", "😂", "🎉", "🙌", "👏", "💯"],
+  },
+  {
+    label: "Smileys",
+    emojis: [
+      "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😊",
+      "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗",
+      "😙", "😚", "😋", "😛", "😜", "🤪", "😝", "🤑",
+      "🤗", "🤭", "🤫", "🤔", "🤐", "🤨", "😐", "😑",
+      "😶", "😏", "😒", "🙄", "😬", "🤥", "😌", "😔",
+      "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮",
+      "🥵", "🥶", "🥴", "😵", "🤯", "🥳", "😎", "🤓",
+    ],
+  },
+  {
+    label: "Gestures",
+    emojis: [
+      "👍", "👎", "👌", "🤌", "🤏", "✌️", "🤞", "🤟",
+      "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️",
+      "👋", "🤚", "🖐️", "✋", "🖖", "👏", "🙌", "👐",
+      "🤲", "🤝", "🙏", "💪", "🦾", "✍️", "💅", "🤳",
+    ],
+  },
+  {
+    label: "Hearts",
+    emojis: [
+      "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍",
+      "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖",
+      "💘", "💝", "💟", "♥️", "💌", "💋", "💐", "🌹",
+    ],
+  },
+  {
+    label: "Symbols",
+    emojis: [
+      "🔥", "✨", "⭐", "🌟", "💫", "💥", "💢", "💦",
+      "💨", "🎉", "🎊", "🎈", "🎁", "🏆", "🥇", "🥈",
+      "🥉", "🏅", "🎖️", "🌈", "☀️", "🌙", "⚡", "☄️",
+      "💯", "✅", "❌", "⚠️", "🚀", "💎", "👑", "🎯",
+    ],
+  },
+  {
+    label: "Animals",
+    emojis: [
+      "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼",
+      "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔",
+      "🦄", "🐝", "🦋", "🐙", "🦑", "🐳", "🐬", "🦈",
+    ],
+  },
+  {
+    label: "Food",
+    emojis: [
+      "🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇",
+      "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥",
+      "🥑", "🥦", "🥕", "🌽", "🍆", "🥔", "🍕", "🍔",
+      "🍟", "🌭", "🍿", "🥨", "🍩", "🍪", "🎂", "🍰",
+      "🍦", "🍭", "☕", "🍵", "🍶", "🍺", "🍷", "🥂",
+    ],
+  },
+];
+
 export function EmojiPicker({ children, onSelect, disabled }: EmojiPickerProps) {
-  const { theme } = useTheme();
-  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const onSelectRef = useRef(onSelect);
-  onSelectRef.current = onSelect;
+  const [activeGroup, setActiveGroup] = useState(0);
 
-  const resolvedMode = resolveMode(theme);
-
-  const handleSelect = useCallback((emoji: EmojiMartEmoji) => {
-    if (emoji.native) {
-      onSelectRef.current(emoji.native);
-      setOpen(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    const container = containerRef.current;
-    if (!container) return;
-
-    const pickerOptions = {
-      data,
-      onEmojiSelect: handleSelect,
-      theme: resolvedMode,
-      previewPosition: "none",
-      skinTonePosition: "search",
-      set: "native",
-      maxFrequentRows: 1,
-      navPosition: "top",
-      autoFocus: !isMobile,
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const picker = new (Picker as any)(pickerOptions) as HTMLElement;
-    container.appendChild(picker);
-
-    return () => {
-      if (picker.parentNode === container) {
-        container.removeChild(picker);
-      }
-    };
-  }, [open, resolvedMode, isMobile, handleSelect]);
+  const handleSelect = (emoji: string) => {
+    onSelect(emoji);
+    setOpen(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -95,15 +96,42 @@ export function EmojiPicker({ children, onSelect, disabled }: EmojiPickerProps) 
         {children}
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto p-0 overflow-hidden border-0 bg-transparent shadow-none z-50"
+        className="w-[320px] p-0 overflow-hidden"
         align="start"
         sideOffset={6}
       >
-        <div
-          ref={containerRef}
-          onWheel={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
-        />
+        <div className="flex items-center gap-1 p-1.5 border-b border-border overflow-x-auto">
+          {EMOJI_GROUPS.map((group, i) => (
+            <button
+              key={group.label}
+              type="button"
+              onClick={() => setActiveGroup(i)}
+              className={cn(
+                "px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors",
+                i === activeGroup
+                  ? "bg-secondary text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              )}
+            >
+              {group.label}
+            </button>
+          ))}
+        </div>
+        <div className="p-2 max-h-[280px] overflow-y-auto">
+          <div className="grid grid-cols-8 gap-0.5">
+            {EMOJI_GROUPS[activeGroup].emojis.map((emoji, i) => (
+              <button
+                key={`${emoji}-${i}`}
+                type="button"
+                onClick={() => handleSelect(emoji)}
+                className="aspect-square flex items-center justify-center text-xl rounded-md hover:bg-secondary transition-colors"
+                aria-label={`React with ${emoji}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
       </PopoverContent>
     </Popover>
   );
