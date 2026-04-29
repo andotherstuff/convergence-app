@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 
 import Index from "./pages/Index";
+import Announcements from "./pages/Announcements";
 import Projects from "./pages/Projects";
 import ProjectSubmit from "./pages/ProjectSubmit";
 import ProjectDetail from "./pages/ProjectDetail";
@@ -15,6 +16,7 @@ export function AppRouter() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/announcements" element={<Announcements />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/submit" element={<ProjectSubmit />} />
         <Route path="/projects/:naddr" element={<ProjectDetail />} />

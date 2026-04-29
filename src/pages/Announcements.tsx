@@ -6,15 +6,19 @@ import { Compose } from "@/components/feed/Compose";
 import { FeedItem } from "@/components/feed/FeedItem";
 import { FeedPostSkeleton } from "@/components/feed/FeedPost";
 import { useAosFeed } from "@/hooks/useAosFeed";
-import { AOS_HASHTAG_DISPLAY } from "@/lib/constants";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { AOS_HASHTAG_DISPLAY, isOrganizer } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 
-const Index = () => {
+const Announcements = () => {
   useSeoMeta({
-    title: "AOS Convergence · Oslo 2026",
+    title: "Announcements · AOS Convergence",
     description:
-      "A curated three-day gathering for builders, researchers, funders, and community leaders working to expand human agency through open systems.",
+      "Official updates from the AOS Convergence organizers. The canonical source for program changes, logistics, and event news.",
   });
+
+  const { user } = useCurrentUser();
+  const viewerIsOrganizer = !!user && isOrganizer(user.pubkey);
 
   const {
     data,
@@ -23,7 +27,7 @@ const Index = () => {
     isFetchingNextPage,
     isLoading,
     isError,
-  } = useAosFeed("all");
+  } = useAosFeed("announcements");
 
   const { ref, inView } = useInView({ rootMargin: "400px 0px" });
 
@@ -48,20 +52,26 @@ const Index = () => {
     <Layout>
       <section className="aos-shell pt-8 md:pt-12 pb-24">
         <header className="mb-6 md:mb-8">
-          <div className="aos-kicker mb-2">The Feed</div>
-          <h1 className="aos-display text-3xl md:text-4xl">
-            {AOS_HASHTAG_DISPLAY}
-          </h1>
+          <div className="aos-kicker mb-2">Organizer Updates</div>
+          <h1 className="aos-display text-3xl md:text-4xl">Announcements</h1>
+          <p className="aos-body mt-3 max-w-xl">
+            Official posts from AOS Convergence organizers. Program changes,
+            logistics, and canonical event news — all tagged{" "}
+            {AOS_HASHTAG_DISPLAY} and #Announcement.
+          </p>
         </header>
 
-        <div className="mb-4 md:mb-5">
-          <Compose />
-        </div>
+        {/* Only organizers can compose an announcement */}
+        {viewerIsOrganizer && (
+          <div className="mb-4 md:mb-5">
+            <Compose announcement />
+          </div>
+        )}
 
         {isError && (
           <div className="aos-card border-dashed p-8 text-center">
             <p className="text-sm text-muted-foreground">
-              Couldn't load the feed. Check your relay connection and try
+              Couldn't load announcements. Check your relay connection and try
               again.
             </p>
           </div>
@@ -70,12 +80,11 @@ const Index = () => {
         {!isLoading && !isError && items.length === 0 && (
           <div className="aos-card border-dashed p-10 text-center">
             <p className="text-base font-medium text-foreground mb-2">
-              No posts yet
+              No announcements yet
             </p>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Be the first to share something with the convergence community.
-              Post anything tagged {AOS_HASHTAG_DISPLAY} and it'll show up
-              here.
+              When organizers post official updates tagged{" "}
+              {AOS_HASHTAG_DISPLAY} and #Announcement, they'll appear here.
             </p>
           </div>
         )}
@@ -122,4 +131,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Announcements;

@@ -8,6 +8,9 @@ import {
   PROJECT_KIND,
 } from "@/lib/constants";
 
+// (We still reference PROJECT_KIND in the 'all' feed to surface project
+// submissions alongside notes.)
+
 const PAGE_SIZE = 25;
 
 /** Return true if `event` qualifies as an organizer announcement. */
@@ -24,7 +27,7 @@ export function isAnnouncement(event: NostrEvent): boolean {
   return hasAos && hasAnn;
 }
 
-export type FeedMode = "all" | "announcements" | "projects";
+export type FeedMode = "all" | "announcements";
 
 /**
  * Main AOS Convergence feed — merges kind 1 notes and kind 38459
@@ -37,8 +40,6 @@ export type FeedMode = "all" | "announcements" | "projects";
  *   'all'            → everything
  *   'announcements'  → only kind-1 notes by organizers tagged
  *                      #aosconvergence + #announcement
- *   'projects'       → only kind-38459 project submissions tagged
- *                      #aosconvergence
  */
 export function useAosFeed(mode: FeedMode = "all") {
   const { nostr } = useNostr();
@@ -47,38 +48,6 @@ export function useAosFeed(mode: FeedMode = "all") {
     queryKey: ["aos-feed", mode],
     queryFn: async ({ pageParam, signal }) => {
       const until = typeof pageParam === "number" ? pageParam : undefined;
-
-      if (mode === "projects") {
-        const filter: {
-          kinds: number[];
-          "#t": string[];
-          limit: number;
-          until?: number;
-        } = {
-          kinds: [PROJECT_KIND],
-          "#t": [AOS_HASHTAG],
-          limit: PAGE_SIZE,
-        };
-        if (until) filter.until = until;
-
-        const events = await nostr.query([filter], {
-          signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]),
-        });
-
-        // For addressable events, keep only the latest per pubkey+d
-        const latest = new Map<string, NostrEvent>();
-        for (const e of events) {
-          const d = e.tags.find(([n]) => n === "d")?.[1] ?? "";
-          const coord = `${e.pubkey}:${d}`;
-          const prev = latest.get(coord);
-          if (!prev || e.created_at > prev.created_at) {
-            latest.set(coord, e);
-          }
-        }
-        return [...latest.values()].sort(
-          (a, b) => b.created_at - a.created_at
-        );
-      }
 
       if (mode === "announcements") {
         // Organizer-authored kind 1 tagged with #announcement (narrower
