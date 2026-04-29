@@ -74,9 +74,16 @@ export function ShareProfileDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col items-center gap-4 pb-2 min-w-0">
-          <div className="bg-white p-3 rounded-xl border border-border w-full max-w-[260px]">
-            <QRCodeCanvas value={qrValue} level="M" className="w-full" />
+        <div className="flex flex-col items-center gap-4 pb-2 min-w-0 w-full">
+          <div
+            className="bg-white p-3 rounded-xl border border-border"
+            style={{ width: "100%", maxWidth: 240 }}
+          >
+            <QRCodeCanvas
+              value={qrValue}
+              level="M"
+              style={{ width: "100%", height: "auto", display: "block" }}
+            />
           </div>
 
           <div className="w-full min-w-0 space-y-1.5">
