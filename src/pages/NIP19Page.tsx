@@ -29,6 +29,7 @@ import { ThreadView } from "@/components/feed/ThreadView";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ShareProfileDialog } from "@/components/profile/ShareProfileDialog";
 import { FollowListSheet } from "@/components/profile/FollowListSheet";
+import { ZapButton } from "@/components/ZapButton";
 import { cn } from "@/lib/utils";
 import NotFound from "./NotFound";
 
@@ -127,7 +128,14 @@ function ProfileView({ pubkey }: { pubkey: string }) {
                     </Button>
                   </ShareProfileDialog>
                 ) : (
-                  <FollowButton pubkey={pubkey} />
+                  <>
+                    <ZapButton
+                      target={{ pubkey }}
+                      label="Zap"
+                      className="px-3 py-2 rounded-full border border-border hover:bg-secondary"
+                    />
+                    <FollowButton pubkey={pubkey} />
+                  </>
                 )}
               </div>
             </div>

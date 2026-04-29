@@ -5,6 +5,7 @@ import type { Project } from "@/lib/project";
 import { useAuthor } from "@/hooks/useAuthor";
 import { genUserName } from "@/lib/genUserName";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ZapButton } from "@/components/ZapButton";
 
 interface ProjectCardProps {
   project: Project;
@@ -63,6 +64,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </Link>
 
           <div className="flex items-center gap-1 shrink-0">
+            <div onClick={(e) => e.stopPropagation()}>
+              <ZapButton target={project.event} className="text-xs px-1.5" />
+            </div>
             <a
               href={project.repo}
               target="_blank"

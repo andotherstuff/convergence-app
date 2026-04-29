@@ -28,7 +28,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useToast } from '@/hooks/useToast';
-import { useZaps } from '@/hooks/useZaps';
+import { useZaps, type ProfileZapTarget } from '@/hooks/useZaps';
 import { useWallet } from '@/hooks/useWallet';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { Event } from 'nostr-tools';
@@ -36,7 +36,8 @@ import QRCode from 'qrcode';
 import type { WebLNProvider } from "@webbtc/webln-types";
 
 interface ZapDialogProps {
-  target: Event;
+  /** An event to zap, or a `{ pubkey }` object for a profile zap. */
+  target: Event | ProfileZapTarget;
   children?: React.ReactNode;
   className?: string;
 }

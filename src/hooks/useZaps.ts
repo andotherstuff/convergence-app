@@ -12,8 +12,29 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { NostrEvent } from '@nostrify/nostrify';
 
+/**
+ * A target for profile zaps — just a pubkey, no event. Passed in
+ * place of an `Event` to zap a profile directly (NIP-57 allows this
+ * via a zap request with only a `p` tag, no `e` or `a`).
+ */
+export interface ProfileZapTarget {
+  pubkey: string;
+}
+
+function isProfileZapTarget(
+  t: Event | Event[] | ProfileZapTarget | null
+): t is ProfileZapTarget {
+  return (
+    !!t &&
+    !Array.isArray(t) &&
+    typeof (t as ProfileZapTarget).pubkey === "string" &&
+    !(t as Event).id &&
+    !(t as Event).sig
+  );
+}
+
 export function useZaps(
-  target: Event | Event[],
+  target: Event | Event[] | ProfileZapTarget,
   webln: WebLNProvider | null,
   _nwcConnection: NWCConnection | null,
   onZapSuccess?: () => void
@@ -25,9 +46,23 @@ export function useZaps(
   const queryClient = useQueryClient();
 
   // Handle the case where an empty array is passed (from ZapButton when external data is provided)
-  const actualTarget = Array.isArray(target) ? (target.length > 0 ? target[0] : null) : target;
+  const normalizedTarget = Array.isArray(target)
+    ? target.length > 0
+      ? target[0]
+      : null
+    : target;
 
-  const author = useAuthor(actualTarget?.pubkey);
+  // When targeting a profile directly, we don't have an event to zap.
+  const profileTarget = isProfileZapTarget(normalizedTarget)
+    ? (normalizedTarget as ProfileZapTarget)
+    : null;
+  const actualTarget = profileTarget
+    ? null
+    : (normalizedTarget as Event | null);
+
+  // Which pubkey's metadata do we need for LNURL / lud16 lookup?
+  const authorPubkey = profileTarget?.pubkey ?? actualTarget?.pubkey;
+  const author = useAuthor(authorPubkey);
   const { sendPayment, getActiveConnection } = useNWC();
   const [isZapping, setIsZapping] = useState(false);
   const [invoice, setInvoice] = useState<string | null>(null);
@@ -41,16 +76,36 @@ export function useZaps(
   }, []);
 
   const { data: zapEvents, ...query } = useQuery<NostrEvent[], Error>({
-    queryKey: ['nostr', 'zaps', actualTarget?.id],
+    queryKey: [
+      'nostr',
+      'zaps',
+      profileTarget ? `profile:${profileTarget.pubkey}` : actualTarget?.id,
+    ],
     staleTime: 30000, // 30 seconds
     refetchInterval: (query) => {
       // Only refetch if the query is currently being observed (component is mounted)
       return query.getObserversCount() > 0 ? 60000 : false;
     },
     queryFn: async () => {
-      if (!actualTarget) return [];
-
       const signal = AbortSignal.timeout(5000);
+
+      // Profile zaps — all zap receipts that tag this pubkey, with no
+      // `e` or `a` tag (otherwise it's a zap to a specific post/addr
+      // that happens to mention the pubkey).
+      if (profileTarget) {
+        const events = await nostr.query([{
+          kinds: [9735],
+          '#p': [profileTarget.pubkey],
+          limit: 500,
+        }], { signal });
+        return events.filter((e) => {
+          const hasE = e.tags.some(([n]) => n === 'e');
+          const hasA = e.tags.some(([n]) => n === 'a');
+          return !hasE && !hasA;
+        });
+      }
+
+      if (!actualTarget) return [];
 
       // Query for zap receipts for this specific event
       if (actualTarget.kind >= 30000 && actualTarget.kind < 40000) {
@@ -70,12 +125,15 @@ export function useZaps(
         return events;
       }
     },
-    enabled: !!actualTarget?.id,
+    enabled: !!profileTarget || !!actualTarget?.id,
   });
 
   // Process zap events into simple counts and totals
   const { zapCount, totalSats, zaps } = useMemo(() => {
-    if (!zapEvents || !Array.isArray(zapEvents) || !actualTarget) {
+    if (!zapEvents || !Array.isArray(zapEvents)) {
+      return { zapCount: 0, totalSats: 0, zaps: [] };
+    }
+    if (!profileTarget && !actualTarget) {
       return { zapCount: 0, totalSats: 0, zaps: [] };
     }
 
@@ -148,10 +206,10 @@ export function useZaps(
       return;
     }
 
-    if (!actualTarget) {
+    if (!actualTarget && !profileTarget) {
       toast({
-        title: 'Event not found',
-        description: 'Could not find the event to zap.',
+        title: 'Nothing to zap',
+        description: 'Could not determine the zap target.',
         variant: 'destructive',
       });
       setIsZapping(false);
@@ -192,22 +250,37 @@ export function useZaps(
         return;
       }
 
-      // Create zap request - use appropriate event format based on kind
-      // For addressable events (30000-39999), pass the object to get 'a' tag
-      // For all other events, pass the ID string to get 'e' tag
-      const event = (actualTarget.kind >= 30000 && actualTarget.kind < 40000)
-        ? actualTarget
-        : actualTarget.id;
-
       const zapAmount = amount * 1000; // convert to millisats
+      const relays = config.relayMetadata.relays.map(r => r.url);
 
-      const zapRequest = nip57.makeZapRequest({
-        profile: actualTarget.pubkey,
-        event: event,
-        amount: zapAmount,
-        relays: config.relayMetadata.relays.map(r => r.url),
-        comment
-      });
+      let zapRequest;
+      if (profileTarget) {
+        // Profile zap — no `e` / `a` tag, just a `p` tag via `profile`.
+        zapRequest = nip57.makeZapRequest({
+          profile: profileTarget.pubkey,
+          // `event: null` tells nip57 to omit the event tag entirely.
+          event: null,
+          amount: zapAmount,
+          relays,
+          comment,
+        });
+      } else {
+        // Event zap. For addressable events (30000-39999) pass the
+        // object so nip57 adds an `a` tag; otherwise pass the id
+        // string so it adds an `e` tag.
+        const eventParam =
+          (actualTarget!.kind >= 30000 && actualTarget!.kind < 40000)
+            ? actualTarget!
+            : actualTarget!.id;
+
+        zapRequest = nip57.makeZapRequest({
+          profile: actualTarget!.pubkey,
+          event: eventParam,
+          amount: zapAmount,
+          relays,
+          comment,
+        });
+      }
 
       // Sign the zap request (but don't publish to relays - only send to LNURL endpoint)
       if (!user.signer) {

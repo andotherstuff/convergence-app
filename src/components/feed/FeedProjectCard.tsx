@@ -9,6 +9,7 @@ import { genUserName } from "@/lib/genUserName";
 import { parseProject } from "@/lib/project";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
+import { ZapButton } from "@/components/ZapButton";
 
 interface FeedProjectCardProps {
   event: NostrEvent;
@@ -100,21 +101,24 @@ export function FeedProjectCard({ event }: FeedProjectCardProps) {
 
       <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
         <ReactionBar target={event} size="sm" />
-        <Link
-          to={discussionHref}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          aria-label={
-            commentCount === 1
-              ? "1 comment — open discussion"
-              : `${commentCount} comments — open discussion`
-          }
-        >
-          <MessageCircle className="size-3.5" />
-          <span className="tabular-nums font-medium">{commentCount}</span>
-          <span className="hidden sm:inline">
-            {commentCount === 1 ? "comment" : "comments"}
-          </span>
-        </Link>
+        <div className="flex items-center gap-4">
+          <ZapButton target={event} className="text-xs" />
+          <Link
+            to={discussionHref}
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={
+              commentCount === 1
+                ? "1 comment — open discussion"
+                : `${commentCount} comments — open discussion`
+            }
+          >
+            <MessageCircle className="size-3.5" />
+            <span className="tabular-nums font-medium">{commentCount}</span>
+            <span className="hidden sm:inline">
+              {commentCount === 1 ? "comment" : "comments"}
+            </span>
+          </Link>
+        </div>
       </div>
     </article>
   );

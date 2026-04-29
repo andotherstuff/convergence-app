@@ -9,6 +9,7 @@ import { genUserName } from "@/lib/genUserName";
 import { NoteContent } from "@/components/NoteContent";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
+import { ZapButton } from "@/components/ZapButton";
 import { cn } from "@/lib/utils";
 
 interface FeedPostProps {
@@ -88,23 +89,26 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
 
       <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
         <ReactionBar target={event} size="sm" />
-        <Link
-          to={`/${nevent}`}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          aria-label={
-            commentCount === 1
-              ? "1 reply — open thread"
-              : `${commentCount} replies — open thread`
-          }
-        >
-          <MessageCircle className="size-3.5" />
-          <span className="tabular-nums font-medium">
-            {commentCount}
-          </span>
-          <span className="hidden sm:inline">
-            {commentCount === 1 ? "reply" : "replies"}
-          </span>
-        </Link>
+        <div className="flex items-center gap-4">
+          <ZapButton target={event} className="text-xs" />
+          <Link
+            to={`/${nevent}`}
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={
+              commentCount === 1
+                ? "1 reply — open thread"
+                : `${commentCount} replies — open thread`
+            }
+          >
+            <MessageCircle className="size-3.5" />
+            <span className="tabular-nums font-medium">
+              {commentCount}
+            </span>
+            <span className="hidden sm:inline">
+              {commentCount === 1 ? "reply" : "replies"}
+            </span>
+          </Link>
+        </div>
       </div>
     </article>
   );
