@@ -7,7 +7,8 @@ import { Compose } from "@/components/feed/Compose";
 import { FeedItem } from "@/components/feed/FeedItem";
 import { FeedPostSkeleton } from "@/components/feed/FeedPost";
 import { useAosFeed, type FeedMode } from "@/hooks/useAosFeed";
-import { AOS_HASHTAG_DISPLAY } from "@/lib/constants";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { AOS_HASHTAG_DISPLAY, isOrganizer } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,8 @@ const Index = () => {
   });
 
   const [mode, setMode] = useState<FeedMode>("all");
+  const { user } = useCurrentUser();
+  const viewerIsOrganizer = !!user && isOrganizer(user.pubkey);
 
   const {
     data,
@@ -58,10 +61,21 @@ const Index = () => {
           </h1>
         </header>
 
-        {/* Composer */}
-        <div className="mb-4 md:mb-5">
-          <Compose />
-        </div>
+        {/* Composer.
+            "All" mode → regular composer (everyone sees it).
+            "Announcements" mode → organizer-only announcement composer.
+            Logged-out users and non-organizers see no composer in the
+            Announcements tab. */}
+        {mode === "all" && (
+          <div className="mb-4 md:mb-5">
+            <Compose />
+          </div>
+        )}
+        {mode === "announcements" && viewerIsOrganizer && (
+          <div className="mb-4 md:mb-5">
+            <Compose announcement />
+          </div>
+        )}
 
         {/* Mode toggle — segmented control, sits above the feed content */}
         <div className="mb-4 md:mb-5 flex justify-start">

@@ -25,11 +25,19 @@ interface ComposeProps {
    */
   hashtag?: string;
   placeholder?: string;
+  /**
+   * Locked announcement mode. When true the composer publishes with the
+   * `announcement` tag, styles itself as an announcement, and hides the
+   * manual toggle. The caller is responsible for only rendering this
+   * variant to authorized organizers.
+   */
+  announcement?: boolean;
 }
 
 export function Compose({
   hashtag = AOS_HASHTAG,
   placeholder,
+  announcement: announcementLocked = false,
 }: ComposeProps = {}) {
   const { user } = useCurrentUser();
   const author = useAuthor(user?.pubkey);
@@ -44,7 +52,10 @@ export function Compose({
 
   const [content, setContent] = useState("");
   const [imetaTags, setImetaTags] = useState<string[][]>([]);
-  const [asAnnouncement, setAsAnnouncement] = useState(false);
+  const [asAnnouncementToggle, setAsAnnouncementToggle] = useState(false);
+
+  // Locked mode always wins; otherwise fall back to the checkbox state.
+  const asAnnouncement = announcementLocked || asAnnouncementToggle;
 
   if (!user) {
     return (
@@ -66,8 +77,13 @@ export function Compose({
   const metadata = author.data?.metadata;
   const displayName = metadata?.name || genUserName(user.pubkey);
   const picture = metadata?.picture;
-  // Announcements are AOS-specific — only show the toggle on AOS feeds.
-  const organizer = isAosTag && isOrganizer(user.pubkey);
+  // Organizer status is needed both for the announcement checkbox on
+  // normal composers and as a safety check when announcement mode is
+  // locked. Non-organizers should never reach the locked state — the
+  // caller guards rendering — but we also check here defensively so a
+  // misuse can't forge an announcement.
+  const isAosOrganizer = isAosTag && isOrganizer(user.pubkey);
+  const showAnnouncementToggle = isAosOrganizer && !announcementLocked;
 
   const handleImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,7 +119,11 @@ export function Compose({
       : `${trimmed}\n\n${tagDisplay}`;
 
     const tags: string[][] = [["t", tagLower]];
-    if (asAnnouncement && organizer) {
+    // Only allow announcement tagging if the user is actually an
+    // organizer. Relays can't enforce this, but clients render an event
+    // as an announcement only when the author is in the hard-coded list,
+    // so this is belt-and-suspenders against misuse.
+    if (asAnnouncement && isAosOrganizer) {
       tags.push(["t", ANNOUNCEMENT_TAG]);
     }
     tags.push(...imetaTags);
@@ -116,7 +136,7 @@ export function Compose({
       });
       setContent("");
       setImetaTags([]);
-      setAsAnnouncement(false);
+      if (!announcementLocked) setAsAnnouncementToggle(false);
       toast({ title: asAnnouncement ? "Announcement posted!" : "Posted!" });
       if (isAosTag) {
         queryClient.invalidateQueries({ queryKey: ["aos-feed"] });
@@ -191,11 +211,11 @@ export function Compose({
             </span>
           </label>
 
-          {organizer && (
+          {showAnnouncementToggle && (
             <label
               className={cn(
                 "inline-flex items-center gap-1.5 cursor-pointer text-sm transition-colors",
-                asAnnouncement
+                asAnnouncementToggle
                   ? "text-foreground font-medium"
                   : "text-muted-foreground hover:text-foreground"
               )}
@@ -203,13 +223,24 @@ export function Compose({
             >
               <input
                 type="checkbox"
-                checked={asAnnouncement}
-                onChange={(e) => setAsAnnouncement(e.target.checked)}
+                checked={asAnnouncementToggle}
+                onChange={(e) => setAsAnnouncementToggle(e.target.checked)}
                 className="sr-only"
               />
               <Megaphone className="size-4" />
               <span className="hidden sm:inline">Announcement</span>
             </label>
+          )}
+
+          {/* Locked announcement mode — show a static indicator instead of a toggle */}
+          {announcementLocked && (
+            <span
+              className="inline-flex items-center gap-1.5 text-foreground text-sm font-medium"
+              title="Posting as an organizer announcement"
+            >
+              <Megaphone className="size-4" />
+              <span className="hidden sm:inline">Announcement</span>
+            </span>
           )}
         </div>
 
