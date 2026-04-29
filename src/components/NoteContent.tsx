@@ -471,8 +471,14 @@ export function NoteContent({
     // Preserve formatting but prevent too much stacking with the card's own spacing.
     for (let i = 0; i < result.length; i++) {
       const token = result[i];
+      // An naddr-embed normally keeps its surrounding whitespace so the raw
+      // URL (when present) still flows inline with the card beneath it. But
+      // for kinds with rich previews (Treasures) we suppress the URL entirely,
+      // so the embed acts as a pure block and we should collapse whitespace
+      // around it just like other block embeds.
+      const isRichNaddrEmbed = token.type === 'naddr-embed' && token.addr.kind === TREASURE_KIND;
       const isBlock = token.type === 'image-embed' || token.type === 'media-embed' || token.type === 'link-embed' || token.type === 'nevent-embed'
-        || (token.type === 'naddr-embed' && !token.url) || token.type === 'lightning-invoice';
+        || (token.type === 'naddr-embed' && !token.url) || isRichNaddrEmbed || token.type === 'lightning-invoice';
 
       if (isBlock) {
         // Strip all trailing whitespace from the preceding text token.

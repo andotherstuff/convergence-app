@@ -85,8 +85,7 @@ function TreasureCardBody({
   return (
     <div
       className={cn(
-        "not-prose block rounded-2xl border border-border bg-card overflow-hidden",
-        "my-3",
+        "not-prose block rounded-2xl border border-border bg-card overflow-hidden my-2",
         className
       )}
     >
@@ -229,7 +228,7 @@ function TreasureCardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "not-prose rounded-2xl border border-border bg-card overflow-hidden my-3",
+        "not-prose rounded-2xl border border-border bg-card overflow-hidden my-2",
         className
       )}
     >
@@ -268,7 +267,7 @@ function TreasureCardMissing({
       rel="noreferrer noopener"
       onClick={(e) => e.stopPropagation()}
       className={cn(
-        "not-prose flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 my-3 hover:border-foreground/40 transition-colors",
+        "not-prose flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 my-2 hover:border-foreground/40 transition-colors",
         className
       )}
     >
