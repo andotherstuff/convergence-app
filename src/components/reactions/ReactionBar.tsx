@@ -21,7 +21,7 @@ export function ReactionBar({
   className,
 }: ReactionBarProps) {
   const { user } = useCurrentUser();
-  const { data: groups = [], isLoading } = useReactions(target);
+  const { data: groups = [] } = useReactions(target);
   const { mutate: react, isPending } = useReact();
   const { toast } = useToast();
 
@@ -99,7 +99,6 @@ export function ReactionBar({
       })}
 
       <EmojiPicker
-        disabled={isPending || isLoading}
         onSelect={(emoji) => {
           // If user already has this emoji, toggle off. Otherwise add.
           const existing = groups.find((g) => g.emoji === emoji && g.mine);
@@ -108,7 +107,6 @@ export function ReactionBar({
       >
         <button
           type="button"
-          disabled={isPending || isLoading}
           className={cn(
             pillClasses,
             inactive,
