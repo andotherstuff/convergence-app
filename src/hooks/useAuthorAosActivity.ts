@@ -36,12 +36,15 @@ export function useAuthorAosActivity(pubkey: string | undefined) {
         { signal: AbortSignal.any([signal, AbortSignal.timeout(6000)]) }
       );
 
-      // Dedupe by id
+      // Dedupe by id. Drop kind 1 replies (those carrying an "e" tag) —
+      // they belong inside a thread view, not this top-level activity
+      // list. Top-level posts and project shares stay.
       const seen = new Set<string>();
       const deduped: NostrEvent[] = [];
       for (const e of events) {
         if (seen.has(e.id)) continue;
         seen.add(e.id);
+        if (e.kind === 1 && e.tags.some(([n]) => n === "e")) continue;
         deduped.push(e);
       }
 

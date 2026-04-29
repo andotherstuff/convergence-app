@@ -25,6 +25,7 @@ import {
 } from "@/hooks/useAuthorAosActivity";
 import { FeedItem } from "@/components/feed/FeedItem";
 import { FeedPostSkeleton } from "@/components/feed/FeedPost";
+import { ThreadView } from "@/components/feed/ThreadView";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ShareProfileDialog } from "@/components/profile/ShareProfileDialog";
 import { FollowListSheet } from "@/components/profile/FollowListSheet";
@@ -349,24 +350,15 @@ export function NIP19Page() {
     }
 
     case "note":
+      return <ThreadView eventId={decoded.data} />;
+
     case "nevent":
       return (
-        <Layout>
-          <section className="aos-shell pt-10 md:pt-16 pb-16 md:pb-24 max-w-xl">
-            <div className="aos-kicker mb-2">Event</div>
-            <h1 className="aos-title mb-4">Event preview</h1>
-            <p className="aos-body mb-6">
-              Single-event view isn't implemented yet. Browse the main feed
-              instead.
-            </p>
-            <div className="aos-card p-4 text-xs font-mono break-all text-muted-foreground mb-6">
-              {identifier}
-            </div>
-            <Button asChild variant="outline">
-              <Link to="/">Back to feed</Link>
-            </Button>
-          </section>
-        </Layout>
+        <ThreadView
+          eventId={decoded.data.id}
+          author={decoded.data.author}
+          kind={decoded.data.kind}
+        />
       );
 
     default:

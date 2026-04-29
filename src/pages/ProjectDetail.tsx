@@ -253,7 +253,7 @@ const ProjectDetail = () => {
             )}
 
             {/* Comments */}
-            <div>
+            <div id="discussion" className="scroll-mt-24">
               <header className="mb-6">
                 <div className="aos-kicker mb-2">Discussion</div>
                 <h2 className="aos-title flex items-center gap-2">

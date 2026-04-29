@@ -1,15 +1,14 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { nip19 } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
 import { MessageCircle, Megaphone } from "lucide-react";
 import type { NostrEvent } from "@nostrify/nostrify";
 import { useAuthor } from "@/hooks/useAuthor";
+import { useCommentCount } from "@/hooks/useCommentCount";
 import { genUserName } from "@/lib/genUserName";
 import { NoteContent } from "@/components/NoteContent";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
-import { InlineReplyForm } from "@/components/feed/InlineReplyForm";
 import { cn } from "@/lib/utils";
 
 interface FeedPostProps {
@@ -21,7 +20,7 @@ interface FeedPostProps {
 export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
   const author = useAuthor(event.pubkey);
   const metadata = author.data?.metadata;
-  const [showReply, setShowReply] = useState(false);
+  const { data: commentCount = 0 } = useCommentCount(event);
 
   const displayName = metadata?.name || genUserName(event.pubkey);
   const nip05 = metadata?.nip05;
@@ -89,24 +88,24 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
 
       <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
         <ReactionBar target={event} size="sm" />
-        <button
-          type="button"
-          onClick={() => setShowReply((v) => !v)}
+        <Link
+          to={`/${nevent}`}
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          aria-expanded={showReply}
+          aria-label={
+            commentCount === 1
+              ? "1 reply — open thread"
+              : `${commentCount} replies — open thread`
+          }
         >
           <MessageCircle className="size-3.5" />
-          {showReply ? "Cancel" : "Reply"}
-        </button>
+          <span className="tabular-nums font-medium">
+            {commentCount}
+          </span>
+          <span className="hidden sm:inline">
+            {commentCount === 1 ? "reply" : "replies"}
+          </span>
+        </Link>
       </div>
-
-      {showReply && (
-        <InlineReplyForm
-          parent={event}
-          onSuccess={() => setShowReply(false)}
-          onCancel={() => setShowReply(false)}
-        />
-      )}
     </article>
   );
 }

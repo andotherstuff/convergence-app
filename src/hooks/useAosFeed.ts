@@ -27,9 +27,11 @@ export function isAnnouncement(event: NostrEvent): boolean {
 export type FeedMode = "all" | "announcements";
 
 /**
- * Main AOS Convergence feed — merges kind 1 notes, kind 38459 project
- * submissions, and kind 1111 comments tagged #aosconvergence into a
- * single newest-first stream with infinite scroll.
+ * Main AOS Convergence feed — merges kind 1 notes and kind 38459
+ * project submissions tagged #aosconvergence into a single newest-
+ * first stream with infinite scroll. Comments (kind 1111) and
+ * NIP-10 replies are intentionally excluded from the top-level feed;
+ * they appear inside each item's thread view instead.
  *
  * mode:
  *   'all'            → everything
@@ -88,16 +90,19 @@ export function useAosFeed(mode: FeedMode = "all") {
       };
 
       const events = await nostr.query(
-        [makeFilter([1]), makeFilter([PROJECT_KIND]), makeFilter([1111])],
+        [makeFilter([1]), makeFilter([PROJECT_KIND])],
         { signal: AbortSignal.any([signal, AbortSignal.timeout(6000)]) }
       );
 
-      // Dedupe by id (a single event can match multiple filters on some relays)
+      // Dedupe by id and drop replies — kind 1 notes that carry an "e"
+      // tag are NIP-10 replies, which belong inside a thread view, not
+      // the top-level feed.
       const seen = new Set<string>();
       const deduped: NostrEvent[] = [];
       for (const e of events) {
         if (seen.has(e.id)) continue;
         seen.add(e.id);
+        if (e.kind === 1 && e.tags.some(([n]) => n === "e")) continue;
         deduped.push(e);
       }
 

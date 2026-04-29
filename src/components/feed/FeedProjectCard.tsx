@@ -1,19 +1,14 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { nip19 } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
-import {
-  ArrowUpRight,
-  MessageCircle,
-  Rocket,
-} from "lucide-react";
+import { ArrowUpRight, MessageCircle, Rocket } from "lucide-react";
 import type { NostrEvent } from "@nostrify/nostrify";
 import { useAuthor } from "@/hooks/useAuthor";
+import { useCommentCount } from "@/hooks/useCommentCount";
 import { genUserName } from "@/lib/genUserName";
 import { parseProject } from "@/lib/project";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
-import { InlineReplyForm } from "@/components/feed/InlineReplyForm";
 
 interface FeedProjectCardProps {
   event: NostrEvent;
@@ -28,7 +23,7 @@ interface FeedProjectCardProps {
 export function FeedProjectCard({ event }: FeedProjectCardProps) {
   const author = useAuthor(event.pubkey);
   const metadata = author.data?.metadata;
-  const [showReply, setShowReply] = useState(false);
+  const { data: commentCount = 0 } = useCommentCount(event);
 
   const project = parseProject(event);
   if (!project) return null;
@@ -39,6 +34,10 @@ export function FeedProjectCard({ event }: FeedProjectCardProps) {
   const timeAgo = formatDistanceToNow(new Date(event.created_at * 1000), {
     addSuffix: true,
   });
+
+  // Link to the project detail page's Discussion section. The page
+  // already renders the full CommentsSection at the bottom.
+  const discussionHref = `/projects/${project.naddr}#discussion`;
 
   return (
     <article className="aos-feed-row">
@@ -101,25 +100,22 @@ export function FeedProjectCard({ event }: FeedProjectCardProps) {
 
       <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
         <ReactionBar target={event} size="sm" />
-        <button
-          type="button"
-          onClick={() => setShowReply((v) => !v)}
+        <Link
+          to={discussionHref}
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          aria-expanded={showReply}
+          aria-label={
+            commentCount === 1
+              ? "1 comment — open discussion"
+              : `${commentCount} comments — open discussion`
+          }
         >
           <MessageCircle className="size-3.5" />
-          {showReply ? "Cancel" : "Comment"}
-        </button>
+          <span className="tabular-nums font-medium">{commentCount}</span>
+          <span className="hidden sm:inline">
+            {commentCount === 1 ? "comment" : "comments"}
+          </span>
+        </Link>
       </div>
-
-      {showReply && (
-        <InlineReplyForm
-          parent={event}
-          placeholder="Leave a comment…"
-          onSuccess={() => setShowReply(false)}
-          onCancel={() => setShowReply(false)}
-        />
-      )}
     </article>
   );
 }

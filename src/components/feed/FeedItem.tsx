@@ -9,7 +9,12 @@ interface FeedItemProps {
   event: NostrEvent;
 }
 
-/** Routes an event to the right feed-item renderer based on its kind. */
+/**
+ * Routes an event to the right feed-item renderer based on its kind.
+ * Kind 1111 comments are only rendered here when explicitly included
+ * (e.g. the profile "Comments" tab). The top-level community feed
+ * filters them out via `useAosFeed`.
+ */
 export function FeedItem({ event }: FeedItemProps) {
   if (event.kind === PROJECT_KIND) {
     return <FeedProjectCard event={event} />;
