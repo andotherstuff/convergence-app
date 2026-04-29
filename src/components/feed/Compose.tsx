@@ -1,17 +1,23 @@
 import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Image as ImageIcon, Loader2, Send } from "lucide-react";
+import { Image as ImageIcon, Loader2, Megaphone, Send } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useNostrPublish } from "@/hooks/useNostrPublish";
 import { useUploadFile } from "@/hooks/useUploadFile";
 import { useToast } from "@/hooks/useToast";
 import { genUserName } from "@/lib/genUserName";
-import { AOS_HASHTAG, AOS_HASHTAG_DISPLAY } from "@/lib/constants";
+import {
+  ANNOUNCEMENT_TAG,
+  AOS_HASHTAG,
+  AOS_HASHTAG_DISPLAY,
+  isOrganizer,
+} from "@/lib/constants";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LoginArea } from "@/components/auth/LoginArea";
+import { cn } from "@/lib/utils";
 
 export function Compose() {
   const { user } = useCurrentUser();
@@ -23,6 +29,7 @@ export function Compose() {
 
   const [content, setContent] = useState("");
   const [imetaTags, setImetaTags] = useState<string[][]>([]);
+  const [asAnnouncement, setAsAnnouncement] = useState(false);
 
   if (!user) {
     return (
@@ -44,6 +51,7 @@ export function Compose() {
   const metadata = author.data?.metadata;
   const displayName = metadata?.name || genUserName(user.pubkey);
   const picture = metadata?.picture;
+  const organizer = isOrganizer(user.pubkey);
 
   const handleImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -78,19 +86,23 @@ export function Compose() {
       ? trimmed
       : `${trimmed}\n\n${AOS_HASHTAG_DISPLAY}`;
 
+    const tags: string[][] = [["t", AOS_HASHTAG]];
+    if (asAnnouncement && organizer) {
+      tags.push(["t", ANNOUNCEMENT_TAG]);
+    }
+    tags.push(...imetaTags);
+
     try {
       await publish({
         kind: 1,
         content: finalContent,
-        tags: [["t", AOS_HASHTAG], ...imetaTags],
+        tags,
       });
       setContent("");
       setImetaTags([]);
-      toast({ title: "Posted!" });
-      // Refresh feed
-      queryClient.invalidateQueries({
-        queryKey: ["feed", "hashtag", AOS_HASHTAG],
-      });
+      setAsAnnouncement(false);
+      toast({ title: asAnnouncement ? "Announcement posted!" : "Posted!" });
+      queryClient.invalidateQueries({ queryKey: ["aos-feed"] });
     } catch (err) {
       toast({
         title: "Failed to post",
@@ -103,7 +115,13 @@ export function Compose() {
   const canSubmit = content.trim().length > 0 && !isPublishing && !isUploading;
 
   return (
-    <form onSubmit={handleSubmit} className="aos-card p-4 md:p-5 space-y-3">
+    <form
+      onSubmit={handleSubmit}
+      className={cn(
+        "aos-card p-4 md:p-5 space-y-3",
+        asAnnouncement && "border-l-4 border-l-foreground aos-bg-alt"
+      )}
+    >
       <div className="flex items-start gap-3">
         <Avatar className="size-9 border border-border mt-1 shrink-0">
           <AvatarImage src={picture} alt={displayName} />
@@ -115,37 +133,64 @@ export function Compose() {
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder={`Share something with the convergence…`}
+          placeholder={
+            asAnnouncement
+              ? "Write an announcement to the convergence…"
+              : "Share something with the convergence…"
+          }
           rows={3}
           className="flex-1 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-[0.95rem] placeholder:text-muted-foreground/70"
           maxLength={4000}
         />
       </div>
 
-      <div className="flex items-center justify-between gap-2 pl-[48px] border-t border-border pt-3">
-        <label
-          className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-pointer text-sm transition-colors"
-          aria-label="Add image"
-        >
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImage}
-            className="sr-only"
-            disabled={isUploading || isPublishing}
-          />
-          {isUploading ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <ImageIcon className="size-4" />
+      <div className="flex items-center justify-between gap-2 pl-[48px] border-t border-border pt-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <label
+            className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground cursor-pointer text-sm transition-colors"
+            aria-label="Add image"
+          >
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImage}
+              className="sr-only"
+              disabled={isUploading || isPublishing}
+            />
+            {isUploading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <ImageIcon className="size-4" />
+            )}
+            <span className="hidden sm:inline">
+              {isUploading ? "Uploading…" : "Image"}
+            </span>
+          </label>
+
+          {organizer && (
+            <label
+              className={cn(
+                "inline-flex items-center gap-1.5 cursor-pointer text-sm transition-colors",
+                asAnnouncement
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Post this as an official announcement"
+            >
+              <input
+                type="checkbox"
+                checked={asAnnouncement}
+                onChange={(e) => setAsAnnouncement(e.target.checked)}
+                className="sr-only"
+              />
+              <Megaphone className="size-4" />
+              <span className="hidden sm:inline">Announcement</span>
+            </label>
           )}
-          <span className="hidden sm:inline">
-            {isUploading ? "Uploading…" : "Image"}
-          </span>
-        </label>
+        </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground hidden sm:inline">
+          <span className="text-xs text-muted-foreground hidden md:inline">
             {AOS_HASHTAG_DISPLAY}
           </span>
           <Button
@@ -159,7 +204,7 @@ export function Compose() {
             ) : (
               <>
                 <Send className="size-4 mr-1.5" />
-                Post
+                {asAnnouncement ? "Publish" : "Post"}
               </>
             )}
           </Button>

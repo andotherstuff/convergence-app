@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentsSection } from "@/components/comments/CommentsSection";
 import { ZapButton } from "@/components/ZapButton";
+import { ReactionBar } from "@/components/reactions/ReactionBar";
 import { useProject } from "@/hooks/useProject";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -205,6 +206,11 @@ const ProjectDetail = () => {
                   </Link>
                 </Button>
               )}
+            </div>
+
+            {/* Reactions */}
+            <div className="mb-8">
+              <ReactionBar target={project.event} />
             </div>
 
             <Separator className="mb-8" />

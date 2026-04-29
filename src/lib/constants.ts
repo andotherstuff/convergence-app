@@ -8,15 +8,23 @@ export const AOS_HASHTAG = "aosconvergence";
 /** Display version of the hashtag. */
 export const AOS_HASHTAG_DISPLAY = "#AOSConvergence";
 
+/** Tag value used to mark a post as an official announcement. */
+export const ANNOUNCEMENT_TAG = "announcement";
+
 /** Custom event kind for project showcase submissions (addressable). */
 export const PROJECT_KIND = 38459;
 
 /**
- * The canonical AOS Convergence calendar event (kind 31922, NIP-52).
- * Source: naddr1qvzqqqrukgpzqhfezurfd9u0ya8crwznfhwv7lxuukjupf5m4y06h8cw2smtf2a3qq4kzmmn943k7mnkv4exwetwvdjj6tfddaekcmedxgcryd3dxymnwde58qcr2df4xserwtfsmdrdmr
+ * Hex pubkeys of members of the AOS Convergence organizing team.
+ * Only posts authored by these pubkeys qualify as announcements.
+ * Append hex pubkeys (not npubs) here as the team grows.
  */
-export const AOS_SCHEDULE_EVENT = {
-  kind: 31922,
-  pubkey: "5d39170696978f274f81b8534ddccf7cdce5a5c0a69ba91fab9f0e5436b4abb1",
-  identifier: "aos-convergence---oslo-2026-1777480555427-0",
-} as const;
+export const AOS_ORGANIZERS: readonly string[] = [
+  // MK Fain
+  "932614571afcbad4d17a191ee281e39eebbb41b93fac8fd87829622aeb112f4d",
+];
+
+/** Helper: is a pubkey in the organizer list? */
+export function isOrganizer(pubkey: string): boolean {
+  return AOS_ORGANIZERS.includes(pubkey);
+}

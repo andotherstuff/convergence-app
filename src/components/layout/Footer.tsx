@@ -16,9 +16,6 @@ export function Footer() {
             <Link to="/" className="aos-nav-link">
               Feed
             </Link>
-            <Link to="/schedule" className="aos-nav-link">
-              Schedule
-            </Link>
             <Link to="/projects" className="aos-nav-link">
               Projects
             </Link>

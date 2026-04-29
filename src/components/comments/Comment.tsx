@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { useQueryClient } from '@tanstack/react-query';
 import { CommentForm } from './CommentForm';
 import { NoteContent } from '@/components/NoteContent';
+import { ReactionBar } from '@/components/reactions/ReactionBar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -152,6 +153,9 @@ export function Comment({ root, comment, depth = 0, maxDepth = 3, limit }: Comme
             <div className="text-sm">
               <NoteContent event={comment} className="text-sm" />
             </div>
+
+            {/* Reactions */}
+            <ReactionBar target={comment} size="sm" />
 
             {/* Comment Actions */}
             <div className="flex items-center justify-between pt-2">

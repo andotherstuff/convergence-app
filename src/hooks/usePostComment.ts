@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { NKinds, type NostrEvent } from '@nostrify/nostrify';
+import { AOS_HASHTAG } from '@/lib/constants';
 
 interface PostCommentParams {
   root: NostrEvent | URL | `#${string}`; // The root event to comment on
@@ -27,6 +28,10 @@ export function usePostComment() {
         // If this is a top-level comment, use the root event's tags
         tags.push(...makeCommentTags('reply', root));
       }
+
+      // Auto-tag comments posted in this app with the AOS hashtag so they
+      // show up in the main feed and on profile activity lists.
+      tags.push(['t', AOS_HASHTAG]);
 
       const event = await publishEvent({
         kind: 1111,

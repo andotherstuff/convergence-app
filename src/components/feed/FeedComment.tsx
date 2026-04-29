@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { nip19 } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
-import { MessageCircle, Megaphone } from "lucide-react";
+import { MessageCircle, MessageSquareText } from "lucide-react";
 import type { NostrEvent } from "@nostrify/nostrify";
 import { useAuthor } from "@/hooks/useAuthor";
 import { genUserName } from "@/lib/genUserName";
@@ -10,49 +10,63 @@ import { NoteContent } from "@/components/NoteContent";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
 import { InlineReplyForm } from "@/components/feed/InlineReplyForm";
-import { cn } from "@/lib/utils";
+import { PROJECT_KIND } from "@/lib/constants";
 
-interface FeedPostProps {
+interface FeedCommentProps {
   event: NostrEvent;
-  /** Render with the visually-distinct announcement styling. */
-  isAnnouncement?: boolean;
 }
 
-export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
+/** Extract root context info from a kind-1111 comment's tags. */
+function getRootContext(event: NostrEvent): {
+  label: string;
+  to: string | null;
+} {
+  // Uppercase A → addressable root (e.g. project)
+  const A = event.tags.find(([n]) => n === "A")?.[1];
+  if (A) {
+    const [kindStr, pubkey, identifier] = A.split(":");
+    const kind = Number(kindStr);
+    if (kind === PROJECT_KIND && pubkey && identifier) {
+      try {
+        const naddr = nip19.naddrEncode({ kind, pubkey, identifier });
+        return { label: "a project", to: `/projects/${naddr}` };
+      } catch {
+        /* fall through */
+      }
+    }
+    return { label: `a ${kindStr}`, to: null };
+  }
+
+  // Uppercase E → event root
+  const E = event.tags.find(([n]) => n === "E")?.[1];
+  if (E) {
+    try {
+      const nevent = nip19.neventEncode({ id: E });
+      return { label: "a post", to: `/${nevent}` };
+    } catch {
+      return { label: "a post", to: null };
+    }
+  }
+
+  return { label: "a post", to: null };
+}
+
+export function FeedComment({ event }: FeedCommentProps) {
   const author = useAuthor(event.pubkey);
   const metadata = author.data?.metadata;
   const [showReply, setShowReply] = useState(false);
 
   const displayName = metadata?.name || genUserName(event.pubkey);
-  const nip05 = metadata?.nip05;
   const picture = metadata?.picture;
-
   const npub = nip19.npubEncode(event.pubkey);
-  const nevent = nip19.neventEncode({
-    id: event.id,
-    author: event.pubkey,
-    kind: event.kind,
-  });
-
   const timeAgo = formatDistanceToNow(new Date(event.created_at * 1000), {
     addSuffix: true,
   });
 
-  return (
-    <article
-      className={cn(
-        "aos-card aos-card-hover p-5 md:p-6",
-        isAnnouncement &&
-          "border-l-4 border-l-foreground aos-bg-alt"
-      )}
-    >
-      {isAnnouncement && (
-        <div className="flex items-center gap-1.5 mb-3 text-[0.7rem] uppercase tracking-[0.14em] font-semibold text-foreground">
-          <Megaphone className="size-3.5" />
-          Announcement
-        </div>
-      )}
+  const { label, to } = getRootContext(event);
 
+  return (
+    <article className="aos-card aos-card-hover p-5 md:p-6">
       <header className="flex items-start gap-3 mb-3">
         <Link to={`/${npub}`} className="shrink-0">
           <Avatar className="size-10 border border-border">
@@ -71,18 +85,18 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
             >
               {displayName}
             </Link>
-            {nip05 && (
-              <span className="text-xs text-muted-foreground truncate">
-                {nip05.replace(/^_@/, "")}
-              </span>
-            )}
+            <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+              <MessageSquareText className="size-3" />
+              commented on {to ? (
+                <Link to={to} className="hover:text-foreground underline-offset-2 hover:underline">
+                  {label}
+                </Link>
+              ) : (
+                label
+              )}
+            </span>
           </div>
-          <Link
-            to={`/${nevent}`}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {timeAgo}
-          </Link>
+          <span className="text-xs text-muted-foreground">{timeAgo}</span>
         </div>
       </header>
 
@@ -113,24 +127,5 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
         </div>
       )}
     </article>
-  );
-}
-
-export function FeedPostSkeleton() {
-  return (
-    <div className="aos-card p-5 md:p-6">
-      <div className="flex items-start gap-3 mb-4">
-        <div className="size-10 rounded-full bg-secondary animate-pulse" />
-        <div className="flex-1 space-y-2">
-          <div className="h-3 w-28 bg-secondary rounded animate-pulse" />
-          <div className="h-3 w-16 bg-secondary rounded animate-pulse" />
-        </div>
-      </div>
-      <div className="pl-[52px] space-y-2">
-        <div className="h-3 w-full bg-secondary rounded animate-pulse" />
-        <div className="h-3 w-4/5 bg-secondary rounded animate-pulse" />
-        <div className="h-3 w-3/5 bg-secondary rounded animate-pulse" />
-      </div>
-    </div>
   );
 }

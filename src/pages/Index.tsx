@@ -1,14 +1,15 @@
-import { useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { useSeoMeta } from "@unhead/react";
 import { useInView } from "react-intersection-observer";
-import { ArrowUpRight, MessageSquareText } from "lucide-react";
+import { Megaphone, MessagesSquare } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Compose } from "@/components/feed/Compose";
-import { FeedPost, FeedPostSkeleton } from "@/components/feed/FeedPost";
-import { useHashtagFeed } from "@/hooks/useHashtagFeed";
-import { AOS_HASHTAG, AOS_HASHTAG_DISPLAY } from "@/lib/constants";
+import { FeedItem } from "@/components/feed/FeedItem";
+import { FeedPostSkeleton } from "@/components/feed/FeedPost";
+import { useAosFeed, type FeedMode } from "@/hooks/useAosFeed";
+import { AOS_HASHTAG_DISPLAY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
   useSeoMeta({
@@ -17,6 +18,8 @@ const Index = () => {
       "A curated three-day gathering for builders, researchers, funders, and community leaders working to expand human agency through open systems.",
   });
 
+  const [mode, setMode] = useState<FeedMode>("all");
+
   const {
     data,
     fetchNextPage,
@@ -24,7 +27,7 @@ const Index = () => {
     isFetchingNextPage,
     isLoading,
     isError,
-  } = useHashtagFeed(AOS_HASHTAG);
+  } = useAosFeed(mode);
 
   const { ref, inView } = useInView({ rootMargin: "400px 0px" });
 
@@ -34,7 +37,7 @@ const Index = () => {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const posts = useMemo(() => {
+  const items = useMemo(() => {
     const seen = new Set<string>();
     return (
       data?.pages.flat().filter((event) => {
@@ -46,66 +49,39 @@ const Index = () => {
   }, [data?.pages]);
 
   return (
-    <Layout hero>
-      {/* HERO */}
-      <section className="aos-shell pt-10 pb-8 md:pt-20 md:pb-16">
-        <div className="max-w-3xl">
-          <span className="aos-eyebrow mb-5">
-            <span className="aos-eyebrow-dot" />
-            Oslo · May 29 – 31, 2026
-          </span>
-
-          <h1 className="aos-display mb-5">AOS Convergence</h1>
-
-          <p className="aos-body text-base md:text-lg max-w-2xl mb-8">
-            A curated three-day gathering for builders, researchers, funders,
-            and community leaders actively working to expand human agency
-            through open systems.
-          </p>
-
-          <div className="flex flex-wrap gap-x-6 gap-y-3 items-center text-sm">
-            <Link to="/schedule" className="aos-link inline-flex items-center gap-1.5">
-              View schedule
-              <ArrowUpRight className="size-4" />
-            </Link>
-            <Link to="/projects" className="aos-link inline-flex items-center gap-1.5">
-              Browse projects
-              <ArrowUpRight className="size-4" />
-            </Link>
-            <a
-              href="https://convergence.andotherstuff.org/"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="aos-link inline-flex items-center gap-1.5 text-muted-foreground"
-            >
-              Official site
-              <ArrowUpRight className="size-4" />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* FEED */}
-      <section className="aos-shell pb-24 border-t border-border pt-10 md:pt-14">
+    <Layout>
+      <section className="aos-shell pt-8 md:pt-12 pb-24">
         <header className="mb-6 md:mb-8 flex items-end justify-between gap-4 flex-wrap">
           <div>
-            <div className="aos-kicker mb-2">The Conversation</div>
-            <h2 className="aos-title flex items-center gap-2">
-              <MessageSquareText className="size-5 shrink-0" />
+            <div className="aos-kicker mb-2">The Feed</div>
+            <h1 className="aos-display text-3xl md:text-4xl">
               {AOS_HASHTAG_DISPLAY}
-            </h2>
+            </h1>
           </div>
-          <p className="text-sm text-muted-foreground max-w-sm">
-            Every Nostr note tagged{" "}
-            <span className="font-mono text-foreground">
-              {AOS_HASHTAG_DISPLAY}
-            </span>{" "}
-            appears here.
-          </p>
+
+          {/* Mode toggle — segmented control */}
+          <div
+            role="tablist"
+            aria-label="Feed filter"
+            className="inline-flex items-center gap-1 p-1 rounded-full border border-border bg-background shadow-sm"
+          >
+            <ModeButton
+              active={mode === "all"}
+              onClick={() => setMode("all")}
+              icon={<MessagesSquare className="size-3.5" />}
+              label="All"
+            />
+            <ModeButton
+              active={mode === "announcements"}
+              onClick={() => setMode("announcements")}
+              icon={<Megaphone className="size-3.5" />}
+              label="Announcements"
+            />
+          </div>
         </header>
 
         <div className="space-y-4 md:space-y-5">
-          <Compose />
+          {mode === "all" && <Compose />}
 
           {isLoading && (
             <>
@@ -124,21 +100,25 @@ const Index = () => {
             </div>
           )}
 
-          {!isLoading && !isError && posts.length === 0 && (
+          {!isLoading && !isError && items.length === 0 && (
             <div className="aos-card border-dashed p-10 text-center">
               <p className="text-base font-medium text-foreground mb-2">
-                No posts yet
+                {mode === "announcements"
+                  ? "No announcements yet"
+                  : "No posts yet"}
               </p>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Be the first to share something with the convergence community.
-                Post anything tagged {AOS_HASHTAG_DISPLAY} and it'll show up
-                here.
+                {mode === "announcements"
+                  ? "When organizers post official updates tagged " +
+                    AOS_HASHTAG_DISPLAY +
+                    " and #Announcement, they'll appear here."
+                  : `Be the first to share something with the convergence community. Post anything tagged ${AOS_HASHTAG_DISPLAY} and it'll show up here.`}
               </p>
             </div>
           )}
 
-          {posts.map((post) => (
-            <FeedPost key={post.id} event={post} />
+          {items.map((event) => (
+            <FeedItem key={event.id} event={event} />
           ))}
 
           {hasNextPage && (
@@ -147,14 +127,14 @@ const Index = () => {
             </div>
           )}
 
-          {!hasNextPage && posts.length > 0 && (
+          {!hasNextPage && items.length > 0 && (
             <div className="text-center py-8 text-xs text-muted-foreground">
               You've reached the beginning.
             </div>
           )}
         </div>
 
-        {!hasNextPage && posts.length >= 10 && (
+        {!hasNextPage && items.length >= 10 && (
           <div className="mt-8 flex justify-center">
             <Button
               variant="outline"
@@ -169,5 +149,32 @@ const Index = () => {
     </Layout>
   );
 };
+
+interface ModeButtonProps {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}
+
+function ModeButton({ active, onClick, icon, label }: ModeButtonProps) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors",
+        active
+          ? "bg-foreground text-background"
+          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+      )}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
 
 export default Index;

@@ -1,12 +1,26 @@
+import { useMemo, useState } from "react";
 import { nip19 } from "nostr-tools";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
+import {
+  ExternalLink,
+  MessageCircle,
+  MessageSquareText,
+  Rocket,
+} from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthor } from "@/hooks/useAuthor";
 import { genUserName } from "@/lib/genUserName";
-import { PROJECT_KIND } from "@/lib/constants";
+import { PROJECT_KIND, isOrganizer } from "@/lib/constants";
+import {
+  useAuthorAosActivity,
+  filterActivity,
+  type ActivityKind,
+} from "@/hooks/useAuthorAosActivity";
+import { FeedItem } from "@/components/feed/FeedItem";
+import { FeedPostSkeleton } from "@/components/feed/FeedPost";
+import { cn } from "@/lib/utils";
 import NotFound from "./NotFound";
 
 function ProfileView({ pubkey }: { pubkey: string }) {
@@ -18,9 +32,26 @@ function ProfileView({ pubkey }: { pubkey: string }) {
   const website = metadata?.website;
   const nip05 = metadata?.nip05;
 
+  const { data: activity = [], isLoading } = useAuthorAosActivity(pubkey);
+  const [tab, setTab] = useState<ActivityKind>("all");
+
+  const counts = useMemo(() => {
+    return {
+      all: activity.length,
+      posts: activity.filter((e) => e.kind === 1).length,
+      projects: activity.filter((e) => e.kind === PROJECT_KIND).length,
+      comments: activity.filter((e) => e.kind === 1111).length,
+    };
+  }, [activity]);
+
+  const filtered = useMemo(() => filterActivity(activity, tab), [activity, tab]);
+
+  const organizer = isOrganizer(pubkey);
+
   return (
     <Layout>
-      <section className="aos-shell pt-10 md:pt-16 pb-16 md:pb-24 max-w-2xl">
+      <section className="aos-shell pt-8 md:pt-12 pb-16 md:pb-24">
+        {/* Banner */}
         {metadata?.banner && (
           <div className="aspect-[3/1] bg-secondary rounded-2xl overflow-hidden mb-6 border border-border">
             <img
@@ -31,6 +62,7 @@ function ProfileView({ pubkey }: { pubkey: string }) {
           </div>
         )}
 
+        {/* Profile header */}
         <div className="flex items-start gap-4 mb-6">
           <Avatar className="size-20 md:size-24 border border-border shrink-0">
             <AvatarImage src={picture} alt={displayName} />
@@ -40,9 +72,15 @@ function ProfileView({ pubkey }: { pubkey: string }) {
           </Avatar>
 
           <div className="flex-1 min-w-0 pt-2">
-            <h1 className="aos-title text-2xl md:text-3xl mb-1">
-              {displayName}
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h1 className="aos-title text-2xl md:text-3xl">{displayName}</h1>
+              {organizer && (
+                <span className="aos-eyebrow text-[0.62rem]">
+                  <span className="aos-eyebrow-dot" />
+                  Organizer
+                </span>
+              )}
+            </div>
             {nip05 && (
               <p className="text-sm text-muted-foreground">
                 {nip05.replace(/^_@/, "")}
@@ -52,13 +90,13 @@ function ProfileView({ pubkey }: { pubkey: string }) {
         </div>
 
         {about && (
-          <p className="text-[0.95rem] leading-relaxed whitespace-pre-wrap mb-5 text-foreground">
+          <p className="text-[0.95rem] leading-relaxed whitespace-pre-wrap mb-5 text-foreground max-w-2xl">
             {about}
           </p>
         )}
 
-        <div className="flex flex-wrap gap-3 mb-8">
-          {website && (
+        {website && (
+          <div className="flex flex-wrap gap-3 mb-8">
             <a
               href={website}
               target="_blank"
@@ -68,16 +106,113 @@ function ProfileView({ pubkey }: { pubkey: string }) {
               {website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
               <ExternalLink className="size-3.5" />
             </a>
-          )}
-        </div>
+          </div>
+        )}
 
+        {/* AOS activity section */}
         <div className="pt-6 border-t border-border">
-          <Button asChild variant="outline">
-            <Link to="/">Back to feed</Link>
-          </Button>
+          <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
+            <div>
+              <div className="aos-kicker mb-1.5">AOS Convergence activity</div>
+              <h2 className="aos-title text-lg md:text-xl">
+                What {displayName} has shared
+              </h2>
+            </div>
+
+            {/* Tabs */}
+            <div
+              role="tablist"
+              className="inline-flex items-center gap-1 p-1 rounded-full border border-border bg-background"
+            >
+              <TabButton
+                active={tab === "all"}
+                onClick={() => setTab("all")}
+                label="All"
+                count={counts.all}
+              />
+              <TabButton
+                active={tab === "posts"}
+                onClick={() => setTab("posts")}
+                label="Posts"
+                count={counts.posts}
+                icon={<MessageSquareText className="size-3" />}
+              />
+              <TabButton
+                active={tab === "projects"}
+                onClick={() => setTab("projects")}
+                label="Projects"
+                count={counts.projects}
+                icon={<Rocket className="size-3" />}
+              />
+              <TabButton
+                active={tab === "comments"}
+                onClick={() => setTab("comments")}
+                label="Comments"
+                count={counts.comments}
+                icon={<MessageCircle className="size-3" />}
+              />
+            </div>
+          </div>
+
+          {isLoading && (
+            <div className="space-y-4">
+              <FeedPostSkeleton />
+              <FeedPostSkeleton />
+            </div>
+          )}
+
+          {!isLoading && filtered.length === 0 && (
+            <div className="aos-card border-dashed p-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                Nothing to show here yet.
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-4 md:space-y-5">
+            {filtered.map((event) => (
+              <FeedItem key={event.id} event={event} />
+            ))}
+          </div>
         </div>
       </section>
     </Layout>
+  );
+}
+
+interface TabButtonProps {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+  icon?: React.ReactNode;
+}
+
+function TabButton({ active, onClick, label, count, icon }: TabButtonProps) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors",
+        active
+          ? "bg-foreground text-background"
+          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+      )}
+    >
+      {icon}
+      {label}
+      <span
+        className={cn(
+          "tabular-nums",
+          active ? "opacity-80" : "opacity-60"
+        )}
+      >
+        {count}
+      </span>
+    </button>
   );
 }
 
