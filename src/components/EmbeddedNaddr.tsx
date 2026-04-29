@@ -2,23 +2,26 @@ import { Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import { cn } from '@/lib/utils';
 import type { AddrCoords } from '@/components/NoteContent';
+import { TreasureCard, TREASURE_KIND } from '@/components/TreasureCard';
 
 interface EmbeddedNaddrProps {
   addr: AddrCoords;
+  /** Optional original URL the naddr was extracted from. */
+  sourceUrl?: string;
   className?: string;
 }
 
 /**
- * Minimal embedded-naddr card — renders a link to the referenced
- * addressable event (kind:pubkey:identifier).
- *
- * Ditto's richer `EmbeddedNaddr` fetches the addressable event (long-form
- * article, marketplace listing, etc.) and renders a preview card with
- * title, author, cover image, and summary. Replace this stub with a
- * version that uses `useAddrEvent({kind, pubkey, identifier})` to fetch
- * and render the target event.
+ * Embedded-naddr card. Delegates to kind-specific renderers when we
+ * know how to draw a rich preview (e.g. Treasures, kind 37515);
+ * otherwise falls back to a minimal link to the event.
  */
-export function EmbeddedNaddr({ addr, className }: EmbeddedNaddrProps) {
+export function EmbeddedNaddr({ addr, sourceUrl, className }: EmbeddedNaddrProps) {
+  // Kind-specific rich previews.
+  if (addr.kind === TREASURE_KIND) {
+    return <TreasureCard coord={addr} sourceUrl={sourceUrl} className={className} />;
+  }
+
   const naddrId = nip19.naddrEncode({
     kind: addr.kind,
     pubkey: addr.pubkey,

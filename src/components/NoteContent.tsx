@@ -10,6 +10,7 @@ import { useProfileUrl } from '@/hooks/useProfileUrl';
 import { LinkEmbed } from '@/components/LinkEmbed';
 import { EmbeddedNote } from '@/components/EmbeddedNote';
 import { EmbeddedNaddr } from '@/components/EmbeddedNaddr';
+import { TREASURE_KIND } from '@/components/TreasureCard';
 import { LightningInvoiceCard } from '@/components/LightningInvoiceCard';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { AudioVisualizer } from '@/components/AudioVisualizer';
@@ -736,22 +737,33 @@ export function NoteContent({
                 </Link>
               );
             }
-            return (
-              <span key={i}>
-                {token.url && (
-                  <a
-                    href={token.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline break-all"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {token.url}
-                  </a>
-                )}
-                <EmbeddedNaddr addr={token.addr} className="my-2.5" />
-              </span>
-            );
+            {
+              // For kinds with rich previews (like Treasures), suppress
+              // the raw URL since the card replaces it entirely — otherwise
+              // the feed shows a long bech32 URL immediately above a card
+              // that already links to the same place.
+              const hasRichPreview = token.addr.kind === TREASURE_KIND;
+              return (
+                <span key={i}>
+                  {!hasRichPreview && token.url && (
+                    <a
+                      href={token.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline break-all"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {token.url}
+                    </a>
+                  )}
+                  <EmbeddedNaddr
+                    addr={token.addr}
+                    sourceUrl={token.url}
+                    className="my-2.5"
+                  />
+                </span>
+              );
+            }
           case 'mention':
             return <NostrMention key={i} pubkey={token.pubkey} />;
           case 'nostr-link':
