@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import { BottomNav } from "./BottomNav";
+import { cn } from "@/lib/utils";
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,12 +12,13 @@ interface LayoutProps {
 
 export function Layout({ children, hero = false }: LayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col">
+    // Reserve space on mobile for the fixed bottom nav so content and the
+    // footer aren't hidden behind it.
+    <div className="min-h-screen flex flex-col pb-16 md:pb-0">
       <Header />
-      <main className={hero ? "aos-hero-bg flex-1" : "flex-1"}>
-        {children}
-      </main>
+      <main className={cn("flex-1", hero && "aos-hero-bg")}>{children}</main>
       <Footer />
+      <BottomNav />
     </div>
   );
 }

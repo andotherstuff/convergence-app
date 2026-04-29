@@ -135,30 +135,9 @@ export function Header() {
         {open && (
           <div className="pb-4 pt-1 border-t border-border -mx-1">
             <div className="flex flex-col gap-1 pt-3 px-1">
-              {/* Mobile-only: nav links (on desktop they live in the top thumbnav) */}
-              <div className="md:hidden flex flex-col gap-1 pb-2">
-                {NAV.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    onClick={closeMenu}
-                    className={({ isActive }) =>
-                      cn(
-                        "px-3 py-2.5 rounded-md text-base font-medium transition-colors",
-                        isActive
-                          ? "bg-secondary text-foreground"
-                          : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-                      )
-                    }
-                  >
-                    {item.label}
-                  </NavLink>
-                ))}
-                <div className="h-px bg-border my-2" />
-              </div>
-
-              {/* Account section */}
+              {/* Account section
+                  (On mobile, primary nav lives in the fixed BottomNav —
+                  so the hamburger panel is purely for account actions.) */}
               {currentUser && profileHref ? (
                 <>
                   {/* Current profile header */}
