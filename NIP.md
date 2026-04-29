@@ -18,17 +18,18 @@ plaintext. This is **required** and must be non-empty.
 
 ### Tags
 
-| Tag       | Required | Repeats | Description                                                   |
-|-----------|----------|---------|---------------------------------------------------------------|
-| `d`       | Yes      | No      | Unique identifier for the submission (slug + random suffix)   |
-| `title`   | Yes      | No      | Project title (max 120 chars)                                 |
-| `summary` | No       | No      | Short tagline / one-liner shown on cards                      |
-| `url`     | Yes      | No      | Live project URL (must be `http://` or `https://`)            |
-| `repo`    | Yes      | No      | Repository URL (must be `http://` or `https://`)              |
-| `image`   | Yes      | Yes     | Screenshot URL(s). At least one required; the first is cover. |
-| `t`       | Yes      | No      | Hashtag — always `aosconvergence` (lowercase)                 |
-| `alt`     | Yes      | No      | Human-readable fallback description (per NIP-31)              |
-| `client`  | Yes      | No      | Publisher identifier — always `aos-convergence`               |
+| Tag       | Required | Repeats | Description                                                              |
+|-----------|----------|---------|--------------------------------------------------------------------------|
+| `d`       | Yes      | No      | Unique identifier for the submission (slug + random suffix)              |
+| `title`   | Yes      | No      | Project title (max 120 chars)                                            |
+| `summary` | No       | No      | Short tagline / one-liner shown on cards                                 |
+| `url`     | Yes      | No      | Live project URL (must be `http://` or `https://`)                       |
+| `repo`    | Yes      | No      | Repository URL (must be `http://` or `https://`)                         |
+| `cover`   | Yes      | No      | Cover image URL — a 4:3 landscape hero image shown on the grid and atop the detail page |
+| `image`   | No       | Yes     | App screenshot URL(s) shown in a gallery below the description; can be any aspect ratio (mobile or desktop) |
+| `t`       | Yes      | No      | Hashtag — always `aosconvergence` (lowercase)                            |
+| `alt`     | Yes      | No      | Human-readable fallback description (per NIP-31)                         |
+| `client`  | Yes      | No      | Publisher identifier — always `aos-convergence`                          |
 
 ### Validation
 
@@ -36,9 +37,8 @@ Clients should treat a kind 38459 event as invalid and omit it from the
 showcase when any of the following are true:
 
 - `content` is empty or whitespace only
-- `title`, `url`, `repo`, or `d` tags are missing
-- No `image` tag is present
-- `url` or `repo` does not start with `http://` or `https://`
+- `title`, `url`, `repo`, `d`, or `cover` tags are missing
+- `url`, `repo`, or `cover` does not start with `http://` or `https://`
 
 For display in trust-sensitive contexts (editing, deletion), queries should
 **filter by the `authors` field** in addition to the `d` tag, because
@@ -67,8 +67,9 @@ For display in trust-sensitive contexts (editing, deletion), queries should
     ["summary", "Share highlights and annotations on Nostr"],
     ["url", "https://highlighter.example"],
     ["repo", "https://github.com/example/highlighter"],
-    ["image", "https://blossom.example/cover.webp"],
-    ["image", "https://blossom.example/screenshot2.webp"],
+    ["cover", "https://blossom.example/cover-4x3.webp"],
+    ["image", "https://blossom.example/screenshot-mobile.webp"],
+    ["image", "https://blossom.example/screenshot-desktop.webp"],
     ["t", "aosconvergence"],
     ["alt", "AOS Convergence project showcase: Highlighter"],
     ["client", "aos-convergence"]

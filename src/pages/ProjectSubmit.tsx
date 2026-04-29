@@ -9,6 +9,7 @@ import {
   Loader2,
   Upload,
   X,
+  Monitor,
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -83,8 +84,12 @@ const ProjectSubmit = () => {
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
   const [repo, setRepo] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+  const [cover, setCover] = useState<string | null>(null);
+  const [screenshots, setScreenshots] = useState<string[]>([]);
   const [existingD, setExistingD] = useState<string | null>(null);
+  const [uploadingField, setUploadingField] = useState<
+    "cover" | "screenshots" | null
+  >(null);
 
   // Prefill when editing
   useEffect(() => {
@@ -94,16 +99,52 @@ const ProjectSubmit = () => {
       setDescription(existing.description);
       setUrl(existing.url);
       setRepo(existing.repo);
-      setImages(existing.images);
+      setCover(existing.cover);
+      setScreenshots(existing.screenshots);
       setExistingD(existing.d);
     }
   }, [existing, existingD]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Not an image",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+    setUploadingField("cover");
+    try {
+      const tags = await uploadFile(file);
+      const imgUrl = tags[0][1];
+      setCover(imgUrl);
+      toast({ title: "Cover image uploaded" });
+    } catch (err) {
+      toast({
+        title: "Upload failed",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingField(null);
+      e.target.value = "";
+    }
+  };
+
+  const handleScreenshotUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
+    setUploadingField("screenshots");
     try {
       for (const file of files) {
         if (!file.type.startsWith("image/")) {
@@ -116,7 +157,7 @@ const ProjectSubmit = () => {
         }
         const tags = await uploadFile(file);
         const imgUrl = tags[0][1];
-        setImages((prev) => [...prev, imgUrl]);
+        setScreenshots((prev) => [...prev, imgUrl]);
       }
       toast({ title: "Screenshot uploaded" });
     } catch (err) {
@@ -126,12 +167,13 @@ const ProjectSubmit = () => {
         variant: "destructive",
       });
     } finally {
+      setUploadingField(null);
       e.target.value = "";
     }
   };
 
-  const removeImage = (idx: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== idx));
+  const removeScreenshot = (idx: number) => {
+    setScreenshots((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const validate = (): boolean => {
@@ -145,7 +187,7 @@ const ProjectSubmit = () => {
     if (!repo.trim()) next.repo = "Repository URL is required";
     else if (!/^https?:\/\//i.test(repo.trim()))
       next.repo = "Must start with http:// or https://";
-    if (images.length === 0) next.images = "At least one screenshot is required";
+    if (!cover) next.cover = "A cover image is required";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -162,6 +204,7 @@ const ProjectSubmit = () => {
       ["title", title.trim()],
       ["url", url.trim()],
       ["repo", repo.trim()],
+      ["cover", cover!],
       ["t", AOS_HASHTAG],
       ["client", "aos-convergence"],
       [
@@ -171,7 +214,7 @@ const ProjectSubmit = () => {
     ];
 
     if (summary.trim()) tags.push(["summary", summary.trim()]);
-    for (const img of images) tags.push(["image", img]);
+    for (const img of screenshots) tags.push(["image", img]);
 
     try {
       const event = await publish({
@@ -343,28 +386,109 @@ const ProjectSubmit = () => {
                 )}
               </div>
 
-              {/* Screenshots */}
+              {/* Cover image */}
               <div className="space-y-3">
                 <Label>
-                  Screenshots <span className="text-destructive">*</span>
+                  Cover image <span className="text-destructive">*</span>
                 </Label>
+                <p className="text-xs text-muted-foreground -mt-1">
+                  A landscape (4:3) hero image shown on the project grid and at
+                  the top of the detail page.
+                </p>
 
-                {images.length > 0 && (
+                {cover ? (
+                  <div className="relative group">
+                    <div className="aspect-[4/3] rounded-lg overflow-hidden border border-border bg-secondary">
+                      <img
+                        src={cover}
+                        alt="Cover preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="absolute top-2 right-2 flex gap-1.5">
+                      <label className="p-1.5 rounded-full bg-background/95 border border-border hover:bg-background transition-colors cursor-pointer shadow-sm">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCoverUpload}
+                          className="sr-only"
+                          disabled={
+                            uploadingField !== null || isPublishing
+                          }
+                        />
+                        <Upload className="size-3.5" />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setCover(null)}
+                        className="p-1.5 rounded-full bg-background/95 border border-border hover:bg-destructive hover:text-destructive-foreground transition-colors shadow-sm"
+                        aria-label="Remove cover image"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="block max-w-md">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverUpload}
+                      className="sr-only"
+                      disabled={uploadingField !== null || isPublishing}
+                    />
+                    <span className="aos-card border-dashed cursor-pointer flex flex-col items-center justify-center aspect-[4/3] px-4 text-center hover:border-foreground/40 transition-colors">
+                      {uploadingField === "cover" ? (
+                        <>
+                          <Loader2 className="size-5 mb-2 text-muted-foreground animate-spin" />
+                          <span className="text-sm font-medium text-foreground">
+                            Uploading…
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <ImageIcon className="size-6 mb-2 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground mb-0.5">
+                            Upload cover image
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            4:3 landscape recommended
+                          </span>
+                        </>
+                      )}
+                    </span>
+                  </label>
+                )}
+
+                {errors.cover && (
+                  <p className="text-xs text-destructive">{errors.cover}</p>
+                )}
+              </div>
+
+              {/* App screenshots */}
+              <div className="space-y-3">
+                <Label>App screenshots</Label>
+                <p className="text-xs text-muted-foreground -mt-1">
+                  Optional. Mobile or desktop screenshots shown in a gallery
+                  below your project description. Any size works.
+                </p>
+
+                {screenshots.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {images.map((img, i) => (
+                    {screenshots.map((img, i) => (
                       <div
                         key={img}
-                        className="relative group aspect-video rounded-lg overflow-hidden border border-border bg-secondary"
+                        className="relative group rounded-lg overflow-hidden border border-border bg-secondary"
                       >
                         <img
                           src={img}
                           alt={`Screenshot ${i + 1}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-auto block"
                         />
                         <button
                           type="button"
-                          onClick={() => removeImage(i)}
-                          className="absolute top-1.5 right-1.5 p-1 rounded-full bg-background/90 border border-border hover:bg-destructive hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                          onClick={() => removeScreenshot(i)}
+                          className="absolute top-1.5 right-1.5 p-1 rounded-full bg-background/95 border border-border hover:bg-destructive hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 shadow-sm"
                           aria-label={`Remove screenshot ${i + 1}`}
                         >
                           <X className="size-3.5" />
@@ -379,12 +503,12 @@ const ProjectSubmit = () => {
                     type="file"
                     accept="image/*"
                     multiple
-                    onChange={handleImageUpload}
+                    onChange={handleScreenshotUpload}
                     className="sr-only"
-                    disabled={isUploading || isPublishing}
+                    disabled={uploadingField !== null || isPublishing}
                   />
                   <span className="aos-card border-dashed cursor-pointer flex flex-col items-center justify-center py-8 px-4 text-center hover:border-foreground/40 transition-colors">
-                    {isUploading ? (
+                    {uploadingField === "screenshots" ? (
                       <>
                         <Loader2 className="size-5 mb-2 text-muted-foreground animate-spin" />
                         <span className="text-sm font-medium text-foreground">
@@ -393,23 +517,19 @@ const ProjectSubmit = () => {
                       </>
                     ) : (
                       <>
-                        <Upload className="size-5 mb-2 text-muted-foreground" />
+                        <Monitor className="size-5 mb-2 text-muted-foreground" />
                         <span className="text-sm font-medium text-foreground mb-0.5">
-                          {images.length === 0
+                          {screenshots.length === 0
                             ? "Upload screenshots"
                             : "Add more screenshots"}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          PNG, JPG, or WebP. The first one is the cover image.
+                          Mobile, desktop, any aspect ratio
                         </span>
                       </>
                     )}
                   </span>
                 </label>
-
-                {errors.images && (
-                  <p className="text-xs text-destructive">{errors.images}</p>
-                )}
               </div>
             </div>
 

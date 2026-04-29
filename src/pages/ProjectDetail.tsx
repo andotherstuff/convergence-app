@@ -9,8 +9,7 @@ import {
   Code2,
   MessageSquareText,
   Pencil,
-  ChevronLeft,
-  ChevronRight,
+  X,
 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -67,7 +66,7 @@ const ProjectDetail = () => {
   const picture = metadata?.picture;
   const npub = project ? nip19.npubEncode(project.pubkey) : "";
 
-  const [imageIdx, setImageIdx] = useState(0);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useSeoMeta({
     title: project
@@ -125,60 +124,15 @@ const ProjectDetail = () => {
 
         {project && (
           <article>
-            {/* Image carousel */}
-            <div className="relative aos-card overflow-hidden mb-8 md:mb-10">
-              <div className="aspect-video bg-secondary">
+            {/* Cover image — 4:3 landscape */}
+            <div className="aos-card overflow-hidden mb-8 md:mb-10">
+              <div className="aspect-[4/3] md:aspect-[16/10] bg-secondary">
                 <img
-                  src={project.images[imageIdx]}
-                  alt={`${project.title} screenshot ${imageIdx + 1}`}
+                  src={project.cover}
+                  alt={project.title}
                   className="w-full h-full object-cover"
                 />
               </div>
-
-              {project.images.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setImageIdx((i) =>
-                        i === 0 ? project.images.length - 1 : i - 1
-                      )
-                    }
-                    className="absolute left-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-background/90 border border-border flex items-center justify-center hover:bg-background transition-colors"
-                    aria-label="Previous screenshot"
-                  >
-                    <ChevronLeft className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setImageIdx((i) =>
-                        i === project.images.length - 1 ? 0 : i + 1
-                      )
-                    }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-background/90 border border-border flex items-center justify-center hover:bg-background transition-colors"
-                    aria-label="Next screenshot"
-                  >
-                    <ChevronRight className="size-4" />
-                  </button>
-
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                    {project.images.map((_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setImageIdx(i)}
-                        className={`size-2 rounded-full transition-colors ${
-                          i === imageIdx
-                            ? "bg-foreground"
-                            : "bg-foreground/30 hover:bg-foreground/60"
-                        }`}
-                        aria-label={`Screenshot ${i + 1}`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
 
             {/* Header */}
@@ -267,6 +221,31 @@ const ProjectDetail = () => {
               </div>
             </div>
 
+            {/* App screenshots */}
+            {project.screenshots.length > 0 && (
+              <div className="mb-12 md:mb-16">
+                <div className="aos-kicker mb-4">App screenshots</div>
+                <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 md:gap-5 [column-fill:_balance]">
+                  {project.screenshots.map((img, i) => (
+                    <button
+                      key={img}
+                      type="button"
+                      onClick={() => setLightboxUrl(img)}
+                      className="block w-full mb-4 md:mb-5 break-inside-avoid rounded-xl overflow-hidden border border-border bg-secondary hover:ring-2 hover:ring-foreground/20 transition-all focus-visible:ring-2 focus-visible:ring-foreground"
+                      aria-label={`Open screenshot ${i + 1} full size`}
+                    >
+                      <img
+                        src={img}
+                        alt={`${project.title} screenshot ${i + 1}`}
+                        loading="lazy"
+                        className="w-full h-auto block"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Comments */}
             <div>
               <header className="mb-6">
@@ -286,6 +265,35 @@ const ProjectDetail = () => {
               </div>
             </div>
           </article>
+        )}
+
+        {/* Lightbox */}
+        {lightboxUrl && (
+          <div
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 md:p-8"
+            onClick={() => setLightboxUrl(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Screenshot preview"
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxUrl(null);
+              }}
+              className="absolute top-4 right-4 md:top-6 md:right-6 size-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur flex items-center justify-center text-white transition-colors"
+              aria-label="Close preview"
+            >
+              <X className="size-5" />
+            </button>
+            <img
+              src={lightboxUrl}
+              alt=""
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            />
+          </div>
         )}
       </section>
     </Layout>

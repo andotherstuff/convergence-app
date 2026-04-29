@@ -21,11 +21,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
     <article className="aos-card aos-card-hover overflow-hidden flex flex-col group">
       <Link
         to={`/projects/${project.naddr}`}
-        className="aspect-video bg-secondary overflow-hidden block"
+        className="aspect-[4/3] bg-secondary overflow-hidden block"
         aria-label={`View ${project.title}`}
       >
         <img
-          src={project.images[0]}
+          src={project.cover}
           alt={project.title}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
@@ -95,7 +95,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 export function ProjectCardSkeleton() {
   return (
     <div className="aos-card overflow-hidden">
-      <div className="aspect-video bg-secondary animate-pulse" />
+      <div className="aspect-[4/3] bg-secondary animate-pulse" />
       <div className="p-5 space-y-3">
         <div className="h-5 w-3/4 bg-secondary rounded animate-pulse" />
         <div className="space-y-2">

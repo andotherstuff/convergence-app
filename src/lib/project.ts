@@ -13,7 +13,10 @@ export interface Project {
   description: string;
   url: string;
   repo: string;
-  images: string[];
+  /** 4:3 landscape hero image shown on cards and the detail page header. */
+  cover: string;
+  /** Optional app screenshots of any size, shown below the description. */
+  screenshots: string[];
   createdAt: number;
   naddr: string;
 }
@@ -40,18 +43,30 @@ export function parseProject(event: NostrEvent): Project | null {
   const title = getTag(event, "title");
   const url = getTag(event, "url");
   const repo = getTag(event, "repo");
-  const images = getAllTagValues(event, "image");
+  let cover = getTag(event, "cover");
+  const screenshots = getAllTagValues(event, "image");
   const description = event.content?.trim() ?? "";
 
-  if (!d || !title || !url || !repo || images.length === 0 || !description) {
+  if (!d || !title || !url || !repo || !description) {
     return null;
   }
 
   // Only accept http(s) URLs to limit injection surface
   const isSafeUrl = (u: string) => /^https?:\/\//i.test(u);
   if (!isSafeUrl(url) || !isSafeUrl(repo)) return null;
-  const safeImages = images.filter(isSafeUrl);
-  if (safeImages.length === 0) return null;
+
+  // Backward-compat: older submissions used the first `image` tag as the
+  // cover. If no explicit `cover` tag is present, promote the first
+  // screenshot.
+  if (!cover || !isSafeUrl(cover)) {
+    const firstImage = screenshots.find(isSafeUrl);
+    if (!firstImage) return null;
+    cover = firstImage;
+  }
+
+  const safeScreenshots = screenshots
+    .filter(isSafeUrl)
+    .filter((u) => u !== cover);
 
   const summary = getTag(event, "summary") ?? description.slice(0, 160);
 
@@ -71,7 +86,8 @@ export function parseProject(event: NostrEvent): Project | null {
     description,
     url,
     repo,
-    images: safeImages,
+    cover,
+    screenshots: safeScreenshots,
     createdAt: event.created_at,
     naddr,
   };
