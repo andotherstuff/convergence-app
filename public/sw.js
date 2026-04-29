@@ -19,6 +19,7 @@ const SHELL_URLS = [
   "/manifest.webmanifest",
   "/favicon.svg",
   "/AOS_Official.svg",
+  "/og-image.jpg",
 ];
 
 self.addEventListener("install", (event) => {
