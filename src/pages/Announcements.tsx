@@ -54,11 +54,6 @@ const Announcements = () => {
         <header className="mb-6 md:mb-8">
           <div className="aos-kicker mb-2">Organizer Updates</div>
           <h1 className="aos-display text-3xl md:text-4xl">Announcements</h1>
-          <p className="aos-body mt-3 max-w-xl">
-            Official posts from AOS Convergence organizers. Program changes,
-            logistics, and canonical event news — all tagged{" "}
-            {AOS_HASHTAG_DISPLAY} and #Announcement.
-          </p>
         </header>
 
         {/* Only organizers can compose an announcement */}
