@@ -66,24 +66,24 @@ export function ShareProfileDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[380px]">
+      <DialogContent className="sm:max-w-sm p-5 sm:p-6">
         <DialogHeader>
-          <DialogTitle>Share your profile</DialogTitle>
+          <DialogTitle className="pr-8">Share your profile</DialogTitle>
           <DialogDescription>
             Let someone scan this QR to follow {displayName} on Nostr.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col items-center gap-4 pb-2">
-          <div className="bg-white p-4 rounded-xl border border-border">
-            <QRCodeCanvas value={qrValue} size={240} level="M" />
+        <div className="flex flex-col items-center gap-4 pb-2 min-w-0">
+          <div className="bg-white p-3 rounded-xl border border-border w-full max-w-[260px]">
+            <QRCodeCanvas value={qrValue} level="M" className="w-full" />
           </div>
 
-          <div className="w-full space-y-1.5">
+          <div className="w-full min-w-0 space-y-1.5">
             <div className="text-[0.7rem] uppercase tracking-[0.14em] text-muted-foreground font-medium">
               Your npub
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <code className="flex-1 min-w-0 text-xs font-mono bg-secondary/60 rounded-md px-2.5 py-1.5 text-muted-foreground truncate">
                 {npub}
               </code>
