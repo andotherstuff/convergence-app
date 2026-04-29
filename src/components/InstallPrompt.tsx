@@ -173,9 +173,9 @@ export function InstallPrompt() {
           )}
         >
           <img
-            src="/icon-512.png"
+            src="/AOS_Official.svg"
             alt=""
-            className="size-16 rounded-2xl shadow-md ring-1 ring-border"
+            className="size-16 rounded-2xl shadow-md ring-1 ring-border bg-white"
             width={64}
             height={64}
           />

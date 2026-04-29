@@ -14,7 +14,12 @@
  */
 
 const CACHE_NAME = "aos-convergence-shell-v1";
-const SHELL_URLS = ["/", "/manifest.webmanifest", "/favicon.svg", "/icon-512.png"];
+const SHELL_URLS = [
+  "/",
+  "/manifest.webmanifest",
+  "/favicon.svg",
+  "/AOS_Official.svg",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
