@@ -89,10 +89,13 @@ export function ZapstoreButton({
   const href = `https://zapstore.dev/apps/${encodeURIComponent(appId)}`;
 
   const base =
-    "inline-flex items-center gap-1.5 font-medium transition-colors";
+    "inline-flex items-center justify-center gap-2 font-medium transition-colors whitespace-nowrap";
   const variants = {
     default:
-      "px-4 py-2 rounded-full border border-border bg-background text-foreground hover:bg-secondary text-sm",
+      // Match shadcn <Button variant="outline" size="default"> box
+      // metrics so this sits flush with the Visit / Repository / Zap
+      // pills next to it on project detail pages.
+      "h-9 px-4 py-2 rounded-full border border-border bg-background text-foreground hover:bg-secondary hover:text-foreground text-sm shadow-xs",
     subtle:
       "text-xs text-muted-foreground hover:text-foreground",
   } as const;
