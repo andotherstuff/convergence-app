@@ -17,6 +17,15 @@ export interface Project {
   cover: string;
   /** Optional app screenshots of any size, shown below the description. */
   screenshots: string[];
+  /**
+   * Optional Zapstore app identifier (Android package name in reverse-
+   * domain notation, e.g. `dev.zapstore.app`). Corresponds to the
+   * `d` tag of the project's NIP-82 kind-32267 event on Zapstore.
+   * When present, the UI shows a "Get on Zapstore" button that
+   * deep-links into the Zapstore app on Android (with a web fallback
+   * to `https://zapstore.dev/apps/<id>`).
+   */
+  zapstore?: string;
   createdAt: number;
   naddr: string;
 }
@@ -70,6 +79,17 @@ export function parseProject(event: NostrEvent): Project | null {
 
   const summary = getTag(event, "summary") ?? description.slice(0, 160);
 
+  // Optional Zapstore app identifier (Android package name).
+  // Validate loosely as a reverse-domain identifier to keep it from
+  // being abused as a URL-injection surface.
+  const zapstoreRaw = getTag(event, "zapstore")?.trim();
+  const zapstore =
+    zapstoreRaw && /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(
+      zapstoreRaw
+    )
+      ? zapstoreRaw
+      : undefined;
+
   const naddr = nip19.naddrEncode({
     kind: event.kind,
     pubkey: event.pubkey,
@@ -88,6 +108,7 @@ export function parseProject(event: NostrEvent): Project | null {
     repo,
     cover,
     screenshots: safeScreenshots,
+    zapstore,
     createdAt: event.created_at,
     naddr,
   };

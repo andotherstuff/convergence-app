@@ -27,6 +27,7 @@ plaintext. This is **required** and must be non-empty.
 | `repo`    | Yes      | No      | Repository URL (must be `http://` or `https://`)                         |
 | `cover`   | Yes      | No      | Cover image URL — a 4:3 landscape hero image shown on the grid and atop the detail page |
 | `image`   | No       | Yes     | App screenshot URL(s) shown in a gallery below the description; can be any aspect ratio (mobile or desktop) |
+| `zapstore`| No       | No      | Optional Zapstore app ID (Android package name in reverse-domain notation, e.g. `com.example.app`). Matches the `d` tag of the corresponding NIP-82 kind-32267 app event. When present, clients can show a "Get on Zapstore" deep link. |
 | `t`       | Yes      | No      | Hashtag — always `aosconvergence` (lowercase)                            |
 | `alt`     | Yes      | No      | Human-readable fallback description (per NIP-31)                         |
 | `client`  | Yes      | No      | Publisher identifier — always `aos-convergence`                          |
@@ -39,6 +40,13 @@ showcase when any of the following are true:
 - `content` is empty or whitespace only
 - `title`, `url`, `repo`, `d`, or `cover` tags are missing
 - `url`, `repo`, or `cover` does not start with `http://` or `https://`
+
+If a `zapstore` tag is present, it **must** match the regex
+`^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$` (reverse-domain
+package name). Clients that don't recognize it should ignore it
+silently; they must not interpolate it into any URL without that
+validation, since the identifier is injected into both an Android
+`intent://` URL and a `https://zapstore.dev/apps/<id>` URL.
 
 For display in trust-sensitive contexts (editing, deletion), queries should
 **filter by the `authors` field** in addition to the `d` tag, because
@@ -70,6 +78,7 @@ For display in trust-sensitive contexts (editing, deletion), queries should
     ["cover", "https://blossom.example/cover-4x3.webp"],
     ["image", "https://blossom.example/screenshot-mobile.webp"],
     ["image", "https://blossom.example/screenshot-desktop.webp"],
+    ["zapstore", "com.example.highlighter"],
     ["t", "aosconvergence"],
     ["alt", "AOS Convergence project showcase: Highlighter"],
     ["client", "aos-convergence"]

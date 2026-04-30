@@ -87,6 +87,7 @@ const ProjectSubmit = () => {
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
   const [repo, setRepo] = useState("");
+  const [zapstore, setZapstore] = useState("");
   const [cover, setCover] = useState<string | null>(null);
   const [screenshots, setScreenshots] = useState<string[]>([]);
   const [existingD, setExistingD] = useState<string | null>(null);
@@ -102,6 +103,7 @@ const ProjectSubmit = () => {
       setDescription(existing.description);
       setUrl(existing.url);
       setRepo(existing.repo);
+      setZapstore(existing.zapstore ?? "");
       setCover(existing.cover);
       setScreenshots(existing.screenshots);
       setExistingD(existing.d);
@@ -201,6 +203,15 @@ const ProjectSubmit = () => {
     else if (!/^https?:\/\//i.test(repo.trim()))
       next.repo = "Must start with http:// or https://";
     if (!cover) next.cover = "A cover image is required";
+    // Zapstore is optional — but if provided it must be a valid
+    // reverse-domain package name (no slashes, no URL).
+    if (
+      zapstore.trim() &&
+      !/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(zapstore.trim())
+    ) {
+      next.zapstore =
+        "Must be a reverse-domain package name like com.example.app";
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -227,6 +238,7 @@ const ProjectSubmit = () => {
     ];
 
     if (summary.trim()) tags.push(["summary", summary.trim()]);
+    if (zapstore.trim()) tags.push(["zapstore", zapstore.trim()]);
     for (const img of screenshots) tags.push(["image", img]);
 
     try {
@@ -411,6 +423,29 @@ const ProjectSubmit = () => {
                 />
                 {errors.repo && (
                   <p className="text-xs text-destructive">{errors.repo}</p>
+                )}
+              </div>
+
+              {/* Zapstore app ID (optional) */}
+              <div className="space-y-2">
+                <Label htmlFor="zapstore">Zapstore app ID</Label>
+                <Input
+                  id="zapstore"
+                  value={zapstore}
+                  onChange={(e) => setZapstore(e.target.value)}
+                  placeholder="com.example.app"
+                  aria-invalid={!!errors.zapstore}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional. If your project is on Zapstore, paste the Android
+                  package name (reverse-domain like{" "}
+                  <span className="font-mono">com.example.app</span>). A "Get
+                  on Zapstore" button will appear on your project page.
+                </p>
+                {errors.zapstore && (
+                  <p className="text-xs text-destructive">
+                    {errors.zapstore}
+                  </p>
                 )}
               </div>
 

@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentsSection } from "@/components/comments/CommentsSection";
 import { ZapButton } from "@/components/ZapButton";
+import { ZapstoreButton } from "@/components/ZapstoreButton";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
 import { useProject } from "@/hooks/useProject";
 import { useAuthor } from "@/hooks/useAuthor";
@@ -188,6 +189,9 @@ const ProjectDetail = () => {
                   Repository
                 </a>
               </Button>
+
+              {/* Optional Zapstore deep link */}
+              {project.zapstore && <ZapstoreButton appId={project.zapstore} />}
 
               {/* ZapButton returns null if unzappable */}
               <div className="rounded-full overflow-hidden">

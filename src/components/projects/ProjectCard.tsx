@@ -6,6 +6,7 @@ import { useAuthor } from "@/hooks/useAuthor";
 import { genUserName } from "@/lib/genUserName";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ZapButton } from "@/components/ZapButton";
+import { ZapstoreButton } from "@/components/ZapstoreButton";
 
 interface ProjectCardProps {
   project: Project;
@@ -67,6 +68,16 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <div onClick={(e) => e.stopPropagation()}>
               <ZapButton target={project.event} className="text-xs px-1.5" />
             </div>
+            {project.zapstore && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <ZapstoreButton
+                  appId={project.zapstore}
+                  variant="subtle"
+                  label="Zapstore"
+                  className="p-1.5"
+                />
+              </div>
+            )}
             <a
               href={project.repo}
               target="_blank"
