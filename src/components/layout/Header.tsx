@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { LogOut, Menu, Settings as SettingsIcon, UserIcon, UserPlus, X } from "lucide-react";
+import {
+  CalendarDays,
+  ExternalLink,
+  LogOut,
+  Menu,
+  Settings as SettingsIcon,
+  UserIcon,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { nip19 } from "nostr-tools";
 import AuthDialog from "@/components/auth/AuthDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +19,7 @@ import {
   type Account,
 } from "@/hooks/useLoggedInAccounts";
 import { genUserName } from "@/lib/genUserName";
+import { PROGRAM_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -162,6 +172,27 @@ export function Header() {
                 "p-2 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
               )}
             >
+              {/* Program — external link to the canonical event
+                  schedule. Opens in a new tab so the user doesn't lose
+                  their place inside the app. Shown at the top of the
+                  menu because it's the single most-referenced link
+                  during the event. */}
+              <a
+                href={PROGRAM_URL}
+                target="_blank"
+                rel="noreferrer noopener"
+                onClick={closeMenu}
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary/60 transition-colors"
+              >
+                <span className="flex items-center justify-center size-8 rounded-full bg-secondary">
+                  <CalendarDays className="size-4 text-muted-foreground" />
+                </span>
+                <span className="text-sm font-medium flex-1">Program</span>
+                <ExternalLink className="size-3.5 text-muted-foreground shrink-0" />
+              </a>
+
+              <div className="h-px bg-border my-2" />
+
               {/* Account section
                   (On mobile, primary nav lives in the fixed BottomNav —
                   so the hamburger panel is purely for account actions.) */}

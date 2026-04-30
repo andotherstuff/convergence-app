@@ -8,8 +8,9 @@ import { FeedPostSkeleton } from "@/components/feed/FeedPost";
 import { NewPostsBanner } from "@/components/feed/NewPostsBanner";
 import { useAosFeed } from "@/hooks/useAosFeed";
 import { useAosLiveStream } from "@/hooks/useAosLiveStream";
-import { AOS_HASHTAG_DISPLAY } from "@/lib/constants";
+import { AOS_HASHTAG_DISPLAY, PROGRAM_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { CalendarDays, ExternalLink } from "lucide-react";
 
 const Index = () => {
   useSeoMeta({
@@ -51,11 +52,28 @@ const Index = () => {
   return (
     <Layout>
       <section className="aos-shell pt-8 md:pt-12 pb-24">
-        <header className="mb-6 md:mb-8">
-          <div className="aos-kicker mb-2">The Feed</div>
-          <h1 className="aos-display text-3xl md:text-4xl">
-            {AOS_HASHTAG_DISPLAY}
-          </h1>
+        <header className="mb-6 md:mb-8 flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <div className="aos-kicker mb-2">The Feed</div>
+            <h1 className="aos-display text-3xl md:text-4xl">
+              {AOS_HASHTAG_DISPLAY}
+            </h1>
+          </div>
+
+          {/* Quick access to the canonical schedule. Prominent on the
+              landing page because it's the single most-referenced link
+              during the event. Opens in a new tab so the user's feed
+              stays intact. */}
+          <a
+            href={PROGRAM_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-border bg-background text-sm font-medium text-foreground hover:bg-secondary transition-colors shadow-xs shrink-0"
+          >
+            <CalendarDays className="size-4" />
+            <span>Program</span>
+            <ExternalLink className="size-3.5 text-muted-foreground" />
+          </a>
         </header>
 
         <div className="mb-4 md:mb-5">

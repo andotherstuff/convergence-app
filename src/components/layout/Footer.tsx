@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { PROGRAM_URL } from "@/lib/constants";
 
 export function Footer() {
   return (
@@ -19,6 +20,14 @@ export function Footer() {
             <Link to="/projects" className="aos-nav-link">
               Projects
             </Link>
+            <a
+              href={PROGRAM_URL}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="aos-nav-link"
+            >
+              Program
+            </a>
             <a
               href="https://convergence.andotherstuff.org/"
               target="_blank"

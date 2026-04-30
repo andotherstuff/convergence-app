@@ -14,6 +14,9 @@ export const ANNOUNCEMENT_TAG = "announcement";
 /** Custom event kind for project showcase submissions (addressable). */
 export const PROJECT_KIND = 38459;
 
+/** External URL for the canonical event program / schedule. */
+export const PROGRAM_URL = "https://convergence.andotherstuff.org/program";
+
 /**
  * Hex pubkeys of members of the AOS Convergence organizing team.
  * Only posts authored by these pubkeys qualify as announcements.
