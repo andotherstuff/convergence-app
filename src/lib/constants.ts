@@ -39,9 +39,6 @@ export const WEBSITE_SCHEDULE_URL = `${WEBSITE_URL}/event#schedule`;
 /** About-the-event page on the website. */
 export const WEBSITE_ABOUT_URL = `${WEBSITE_URL}/about`;
 
-/** Application form on the website. */
-export const WEBSITE_APPLY_URL = `${WEBSITE_URL}/interest`;
-
 /**
  * External URL for the canonical public event program / schedule.
  *

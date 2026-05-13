@@ -45,7 +45,7 @@ Malformed custom-emoji reactions (shortcode content with no matching `emoji` tag
 
 Constants in `src/lib/constants.ts` for website surfaces that do not require auth:
 
-- `WEBSITE_URL`, `WEBSITE_PROGRAM_URL`, `WEBSITE_PROGRAM_FLOW_URL`, `WEBSITE_SCHEDULE_URL`, `WEBSITE_ABOUT_URL`, `WEBSITE_APPLY_URL`.
+- `WEBSITE_URL`, `WEBSITE_PROGRAM_URL`, `WEBSITE_PROGRAM_FLOW_URL`, `WEBSITE_SCHEDULE_URL`, `WEBSITE_ABOUT_URL`.
 - `PROGRAM_URL` is a deprecated alias used only for the "See the public overview" fallback shown to logged-out users on the Schedule page.
 
 Shared design tokens (colors, radii, eyebrow patterns, header lockup) are documented in `BRAND.md` at the root of the website repo. Keep both surfaces visually aligned when making changes.

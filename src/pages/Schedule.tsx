@@ -7,11 +7,12 @@ import { NowHappening } from "@/components/schedule/NowHappening";
 import { Button } from "@/components/ui/button";
 import AuthDialog from "@/components/auth/AuthDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useLoggedInAccounts } from "@/hooks/useLoggedInAccounts";
 import {
   useEventDetails,
   EVENT_DETAILS_ERRORS,
 } from "@/hooks/useEventDetails";
-import { WEBSITE_APPLY_URL, WEBSITE_PROGRAM_FLOW_URL } from "@/lib/constants";
+import { WEBSITE_PROGRAM_FLOW_URL } from "@/lib/constants";
 
 const Schedule = () => {
   useSeoMeta({
@@ -21,8 +22,20 @@ const Schedule = () => {
   });
 
   const { user } = useCurrentUser();
+  const { currentUser, removeLogin } = useLoggedInAccounts();
   const { data, isLoading, error } = useEventDetails();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+
+  /**
+   * Switch accounts: log the current (wrong) account out, then open the
+   * auth dialog so the user can sign in with the correct npub. We remove
+   * first so the newly-added login lands at position 0 and becomes the
+   * active user — `addLogin` appends to the bottom otherwise.
+   */
+  const handleSwitchAccount = () => {
+    if (currentUser) removeLogin(currentUser.id);
+    setAuthDialogOpen(true);
+  };
 
   return (
     <Layout>
@@ -52,7 +65,10 @@ const Schedule = () => {
 
         {/* State 3 — logged in, not approved */}
         {user && error?.message === EVENT_DETAILS_ERRORS.NOT_APPROVED && (
-          <NotApprovedCard pubkey={user.pubkey} />
+          <NotApprovedCard
+            pubkey={user.pubkey}
+            onSwitchAccount={handleSwitchAccount}
+          />
         )}
 
         {/* State 4 — logged in, other error */}
@@ -134,7 +150,13 @@ function LoginPrompt({ onOpenAuth }: { onOpenAuth: () => void }) {
   );
 }
 
-function NotApprovedCard({ pubkey }: { pubkey: string }) {
+function NotApprovedCard({
+  pubkey,
+  onSwitchAccount,
+}: {
+  pubkey: string;
+  onSwitchAccount: () => void;
+}) {
   const npub = nip19.npubEncode(pubkey);
   return (
     <div className="bg-card rounded-[18px] border border-border shadow-sm p-6 md:p-8 max-w-xl">
@@ -143,20 +165,17 @@ function NotApprovedCard({ pubkey }: { pubkey: string }) {
       </h2>
       <p className="text-sm text-muted-foreground leading-relaxed mb-3">
         The detailed schedule is shared only with approved attendees of AOS
-        Convergence. The account you're signed in with is not on that list.
+        Convergence. The account you're signed in with is not on that list —
+        if you applied with a different Nostr account, sign in with that one
+        instead.
       </p>
       <p className="text-xs text-muted-foreground leading-relaxed font-mono break-all bg-secondary/60 rounded-md px-3 py-2 mb-4">
         {npub}
       </p>
       <div className="flex flex-wrap gap-3">
-        <a
-          href={WEBSITE_APPLY_URL}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="inline-flex items-center px-4 h-10 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
-        >
-          Apply to attend ↗
-        </a>
+        <Button onClick={onSwitchAccount} className="rounded-full">
+          Sign in with a different account
+        </Button>
         <Link
           to="/"
           className="inline-flex items-center px-4 h-10 rounded-full border border-border bg-background text-sm font-medium text-foreground hover:bg-secondary transition-colors"
