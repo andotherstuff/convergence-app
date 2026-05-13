@@ -22,10 +22,10 @@ import { EmojiTextarea } from "@/components/EmojiTextarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { cn } from "@/lib/utils";
 
@@ -306,29 +306,39 @@ export function Compose({
               <span className="hidden sm:inline">Announcement</span>
             </span>
           )}
-
-          {/* Subtle "this is public" disclosure. The icon + tooltip
-              carry the full explanation; the visible label stays small
-              so the composer footer doesn't feel preachy. */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span
-                className="inline-flex items-center gap-1 text-xs text-muted-foreground cursor-help"
-                aria-label="About where this posts"
-              >
-                <Globe className="size-3.5" />
-                <span>Public on Nostr</span>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs text-xs leading-relaxed">
-              Posts on this app are published to the open Nostr network.
-              Anyone can read them — including people not at AOS
-              Convergence — and they're effectively permanent.
-            </TooltipContent>
-          </Tooltip>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Subtle "this is public" disclosure. Visually distinct from
+              the action buttons above: a passive status pill with a
+              tinted background and dotted underline on the label, so it
+              reads as metadata rather than a clickable control. Click /
+              tap opens the explainer popover — Popover (not Tooltip) so
+              it works on touch devices too. */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="About where this post goes"
+                className="inline-flex items-center gap-1 rounded-full bg-secondary/70 px-2.5 py-1 text-[0.7rem] font-medium text-muted-foreground hover:bg-secondary transition-colors"
+              >
+                <Globe className="size-3" />
+                <span className="underline decoration-dotted underline-offset-2">
+                  Public on Nostr
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              side="top"
+              align="end"
+              className="w-72 text-xs leading-relaxed"
+            >
+              Posts on this app are published to the open Nostr
+              network. Anyone can read them — including people not at
+              AOS Convergence — and they're effectively permanent.
+            </PopoverContent>
+          </Popover>
+
           <span className="text-xs text-muted-foreground hidden md:inline">
             {tagDisplay}
           </span>
