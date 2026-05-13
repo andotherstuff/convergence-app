@@ -6,11 +6,11 @@ import { Compose } from "@/components/feed/Compose";
 import { FeedItem } from "@/components/feed/FeedItem";
 import { FeedPostSkeleton } from "@/components/feed/FeedPost";
 import { NewPostsBanner } from "@/components/feed/NewPostsBanner";
+import { NowHappening } from "@/components/schedule/NowHappening";
 import { useAosFeed } from "@/hooks/useAosFeed";
 import { useAosLiveStream } from "@/hooks/useAosLiveStream";
-import { AOS_HASHTAG_DISPLAY, PROGRAM_URL } from "@/lib/constants";
+import { AOS_HASHTAG_DISPLAY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, ExternalLink } from "lucide-react";
 
 const Index = () => {
   useSeoMeta({
@@ -52,31 +52,14 @@ const Index = () => {
   return (
     <Layout>
       <section className="aos-shell pt-8 md:pt-12 pb-24">
+        {/* "Now happening" banner — pulls the gated schedule from the
+            shared worker (NIP-98) and ticks every 30s. Renders nothing
+            for logged-out / unapproved users, while loading, or once the
+            event window is over. */}
+        <NowHappening className="mb-6 md:mb-8" />
+
         <header className="mb-6 md:mb-8">
-          {/* Top row: kicker on the left, Program pill on the right.
-              The pill hugs the kicker baseline on every breakpoint
-              (instead of dropping to the bottom of a tall headline on
-              narrow screens), which keeps it sitting neatly in the
-              empty space above the #AOSConvergence headline on mobile. */}
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <div className="aos-kicker">The Feed</div>
-
-            {/* Quick access to the canonical schedule. Prominent on the
-                landing page because it's the single most-referenced
-                link during the event. Opens in a new tab so the user's
-                feed stays intact. */}
-            <a
-              href={PROGRAM_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="inline-flex items-center gap-2 px-4 h-10 rounded-full border border-border bg-background text-sm font-medium text-foreground hover:bg-secondary transition-colors shadow-xs shrink-0"
-            >
-              <CalendarDays className="size-4" />
-              <span>Program</span>
-              <ExternalLink className="size-3.5 text-muted-foreground" />
-            </a>
-          </div>
-
+          <div className="aos-kicker mb-2">The Feed</div>
           <h1 className="aos-display text-3xl md:text-4xl">
             {AOS_HASHTAG_DISPLAY}
           </h1>
