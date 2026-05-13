@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/useToast";
 import { genUserName } from "@/lib/genUserName";
 import { AOS_HASHTAG } from "@/lib/constants";
 import { PROJECT_KIND } from "@/lib/constants";
+import { buildMentionTags, extractMentionedPubkeys } from "@/lib/mentions";
 
 interface InlineReplyFormProps {
   /** The event we're replying to. */
@@ -59,6 +60,12 @@ export function InlineReplyForm({
     if (!trimmed) return;
 
     try {
+      // Notify users mentioned in the body. Exclude the author so a
+      // self-mention doesn't push to them; also exclude the parent
+      // author for kind-1 replies because that pubkey is already
+      // captured in the structural NIP-10 `p` tag.
+      const mentioned = extractMentionedPubkeys(trimmed);
+
       if (parent.kind === 1) {
         // Standard NIP-10 reply. Include the root/reply e-tags and a p-tag.
         // Follow the "mentions" pattern: e-tag with marker, p-tag for the author.
@@ -66,6 +73,7 @@ export function InlineReplyForm({
           ["e", parent.id, "", "reply"],
           ["p", parent.pubkey],
           ["t", AOS_HASHTAG],
+          ...buildMentionTags(mentioned, [user.pubkey, parent.pubkey]),
         ];
         await publish({
           kind: 1,
@@ -108,6 +116,10 @@ export function InlineReplyForm({
           root,
           reply,
           content: trimmed,
+          extraTags: buildMentionTags(mentioned, [
+            user.pubkey,
+            parent.pubkey,
+          ]),
         });
 
         // Optimistically refresh the feed and the comments section
@@ -155,6 +167,7 @@ export function InlineReplyForm({
             disabled={isBusy}
             className="resize-none text-sm min-h-0 py-1.5"
             maxLength={2000}
+            mentionSeedPubkeys={[parent.pubkey]}
           />
         </div>
       </div>

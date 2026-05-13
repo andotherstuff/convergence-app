@@ -9,7 +9,11 @@ import { NewPostsBanner } from "@/components/feed/NewPostsBanner";
 import { useAosFeed } from "@/hooks/useAosFeed";
 import { useAosLiveStream } from "@/hooks/useAosLiveStream";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { AOS_HASHTAG_DISPLAY, isOrganizer } from "@/lib/constants";
+import {
+  AOS_HASHTAG_DISPLAY,
+  AOS_ORGANIZERS,
+  isOrganizer,
+} from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 
 const Announcements = () => {
@@ -63,7 +67,10 @@ const Announcements = () => {
         {/* Only organizers can compose an announcement */}
         {viewerIsOrganizer && (
           <div className="mb-4 md:mb-5">
-            <Compose announcement />
+            <Compose
+              announcement
+              mentionSeedPubkeys={[...AOS_ORGANIZERS]}
+            />
           </div>
         )}
 

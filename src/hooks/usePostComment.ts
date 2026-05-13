@@ -7,6 +7,12 @@ interface PostCommentParams {
   root: NostrEvent | URL | `#${string}`; // The root event to comment on
   reply?: NostrEvent | URL | `#${string}`; // Optional reply to another comment
   content: string;
+  /**
+   * Extra tags to append to the published event. Typically used to pass
+   * mention `p` tags derived from the comment body (see
+   * `extractMentionedPubkeys` + `buildMentionTags` in `@/lib/mentions`).
+   */
+  extraTags?: string[][];
 }
 
 /** Post a NIP-22 (kind 1111) comment on an event. */
@@ -15,7 +21,7 @@ export function usePostComment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ root, reply, content }: PostCommentParams) => {
+    mutationFn: async ({ root, reply, content, extraTags }: PostCommentParams) => {
       const tags: string[][] = [];
 
       // Root event tags
@@ -32,6 +38,12 @@ export function usePostComment() {
       // Auto-tag comments posted in this app with the AOS hashtag so they
       // show up in the main feed and on profile activity lists.
       tags.push(['t', AOS_HASHTAG]);
+
+      // Caller-supplied tags (e.g. mention p-tags). Appended last so the
+      // structural NIP-22 tags always come first.
+      if (extraTags && extraTags.length > 0) {
+        tags.push(...extraTags);
+      }
 
       const event = await publishEvent({
         kind: 1111,

@@ -6,6 +6,7 @@ import { usePostComment } from '@/hooks/usePostComment';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { NostrEvent } from '@nostrify/nostrify';
 import { MessageSquare } from 'lucide-react';
+import { buildMentionTags, extractMentionedPubkeys } from '@/lib/mentions';
 import { cn } from '@/lib/utils';
 
 interface CommentFormProps {
@@ -32,8 +33,21 @@ export function CommentForm({
 
     if (!content.trim() || !user) return;
 
+    // Notify users mentioned in the body. Skip the author plus the
+    // pubkeys of the root and reply targets, whose pubkeys are already
+    // captured in the structural NIP-22 tags.
+    const mentioned = extractMentionedPubkeys(content.trim());
+    const exclude: string[] = [user.pubkey];
+    if (root instanceof Object && "pubkey" in root) exclude.push(root.pubkey);
+    if (reply instanceof Object && "pubkey" in reply) exclude.push(reply.pubkey);
+
     postComment(
-      { content: content.trim(), root, reply },
+      {
+        content: content.trim(),
+        root,
+        reply,
+        extraTags: buildMentionTags(mentioned, exclude),
+      },
       {
         onSuccess: () => {
           setContent('');
@@ -57,6 +71,12 @@ export function CommentForm({
     );
   }
 
+  // Seed the @mention autocomplete with the participants we already know
+  // about so they surface first.
+  const seedPubkeys: string[] = [];
+  if (root instanceof Object && "pubkey" in root) seedPubkeys.push(root.pubkey);
+  if (reply instanceof Object && "pubkey" in reply) seedPubkeys.push(reply.pubkey);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <EmojiTextarea
@@ -65,6 +85,7 @@ export function CommentForm({
         placeholder={placeholder}
         className={cn("rounded-2xl resize-none", compact ? "min-h-[80px]" : "min-h-[100px]")}
         disabled={isPending}
+        mentionSeedPubkeys={seedPubkeys}
       />
       <div className="flex justify-end">
         <Button

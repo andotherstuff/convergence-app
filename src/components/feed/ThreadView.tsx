@@ -20,6 +20,7 @@ import { useSingleEvent, useThreadReplies } from "@/hooks/useSingleEvent";
 import { useToast } from "@/hooks/useToast";
 import { genUserName } from "@/lib/genUserName";
 import { AOS_HASHTAG } from "@/lib/constants";
+import { buildMentionTags, extractMentionedPubkeys } from "@/lib/mentions";
 import { isAnnouncement } from "@/hooks/useAosFeed";
 import { cn } from "@/lib/utils";
 
@@ -76,7 +77,10 @@ function Thread({ rootEvent }: { rootEvent: NostrEvent }) {
     <>
       <RootPost event={rootEvent} />
 
-      <ReplyComposer root={rootEvent} />
+      <ReplyComposer
+        root={rootEvent}
+        seedPubkeys={replies.map((r) => r.pubkey)}
+      />
 
       <div className="mt-8">
         <div className="aos-kicker mb-4">
@@ -233,7 +237,15 @@ function ReplyCard({ event }: { event: NostrEvent }) {
   );
 }
 
-function ReplyComposer({ root }: { root: NostrEvent }) {
+function ReplyComposer({
+  root,
+  seedPubkeys = [],
+}: {
+  root: NostrEvent;
+  /** Pubkeys of users already participating in this thread, used to
+   *  warm the @mention autocomplete with the most relevant candidates. */
+  seedPubkeys?: string[];
+}) {
   const { user } = useCurrentUser();
   const author = useAuthor(user?.pubkey);
   const { mutateAsync: publish, isPending } = useNostrPublish();
@@ -261,6 +273,14 @@ function ReplyComposer({ root }: { root: NostrEvent }) {
     const trimmed = content.trim();
     if (!trimmed) return;
 
+    // Notify the root author plus anyone mentioned in the reply body.
+    // Deduplicate (and drop self-mentions) via buildMentionTags.
+    const mentioned = extractMentionedPubkeys(trimmed);
+    const mentionPTags = buildMentionTags(mentioned, [
+      user.pubkey,
+      root.pubkey,
+    ]);
+
     try {
       await publish({
         kind: 1,
@@ -269,6 +289,7 @@ function ReplyComposer({ root }: { root: NostrEvent }) {
           ["e", root.id, "", "reply"],
           ["p", root.pubkey],
           ["t", AOS_HASHTAG],
+          ...mentionPTags,
         ],
       });
       setContent("");
@@ -306,6 +327,7 @@ function ReplyComposer({ root }: { root: NostrEvent }) {
             rows={3}
             className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-[0.95rem] placeholder:text-muted-foreground/70"
             maxLength={4000}
+            mentionSeedPubkeys={[root.pubkey, ...seedPubkeys]}
           />
         </div>
       </div>

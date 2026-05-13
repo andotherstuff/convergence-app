@@ -49,6 +49,14 @@ const Index = () => {
     );
   }, [data?.pages]);
 
+  // Deduplicated author pubkeys from the visible feed, used to warm the
+  // @mention autocomplete in the composer. Capped so the seed query
+  // doesn't balloon when the feed is long.
+  const feedAuthorPubkeys = useMemo(
+    () => Array.from(new Set(items.map((e) => e.pubkey))).slice(0, 60),
+    [items],
+  );
+
   return (
     <Layout>
       <section className="aos-shell pt-8 md:pt-12 pb-24">
@@ -66,7 +74,7 @@ const Index = () => {
         </header>
 
         <div className="mb-4 md:mb-5">
-          <Compose />
+          <Compose mentionSeedPubkeys={feedAuthorPubkeys} />
         </div>
 
         <NewPostsBanner count={pendingCount} onClick={flush} />

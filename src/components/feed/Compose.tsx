@@ -27,6 +27,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { LoginArea } from "@/components/auth/LoginArea";
+import { buildMentionTags, extractMentionedPubkeys } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
 
 interface ComposeProps {
@@ -43,12 +44,19 @@ interface ComposeProps {
    * variant to authorized organizers.
    */
   announcement?: boolean;
+  /**
+   * Pubkeys to warm the @mention autocomplete with — typically the
+   * authors of the feed items the user is currently looking at, so the
+   * most relevant people appear first.
+   */
+  mentionSeedPubkeys?: string[];
 }
 
 export function Compose({
   hashtag = AOS_HASHTAG,
   placeholder,
   announcement: announcementLocked = false,
+  mentionSeedPubkeys,
 }: ComposeProps = {}) {
   const { user } = useCurrentUser();
   const author = useAuthor(user?.pubkey);
@@ -159,6 +167,10 @@ export function Compose({
     if (asAnnouncement && isAosOrganizer) {
       tags.push(["t", ANNOUNCEMENT_TAG]);
     }
+    // Notify any users mentioned via `@npub1…` or `nostr:npub1…` in the
+    // body. Exclude the author so a self-mention doesn't notify them.
+    const mentioned = extractMentionedPubkeys(finalContent);
+    tags.push(...buildMentionTags(mentioned, [user.pubkey]));
     tags.push(...imetaTags);
 
     try {
@@ -224,6 +236,7 @@ export function Compose({
             rows={3}
             className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-[0.95rem] placeholder:text-muted-foreground/70"
             maxLength={4000}
+            mentionSeedPubkeys={mentionSeedPubkeys}
           />
         </div>
       </div>
