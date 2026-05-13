@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import type { MouseEvent as ReactMouseEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { nip19 } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
 import { MessageCircle, Megaphone } from "lucide-react";
@@ -13,6 +14,9 @@ import { ZapButton } from "@/components/ZapButton";
 import { ClientBadge } from "@/components/feed/ClientBadge";
 import { cn } from "@/lib/utils";
 
+/** Selectors for elements inside a feed row that should handle their own clicks. */
+const INTERACTIVE_SELECTOR = 'a, button, [role="button"], input, textarea, label, summary, [contenteditable="true"]';
+
 interface FeedPostProps {
   event: NostrEvent;
   /** Render with the visually-distinct announcement styling. */
@@ -20,6 +24,7 @@ interface FeedPostProps {
 }
 
 export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
+  const navigate = useNavigate();
   const author = useAuthor(event.pubkey);
   const metadata = author.data?.metadata;
   const { data: commentCount = 0 } = useCommentCount(event);
@@ -39,12 +44,31 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
     addSuffix: true,
   });
 
+  const handleCardClick = (e: ReactMouseEvent<HTMLElement>) => {
+    // Only handle plain left-clicks — let modified clicks fall through so the
+    // browser's default behavior (open-in-new-tab via nested anchors) still works.
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+    // Bail if the click originated from a nested interactive element
+    // (profile/timestamp/reply links, reaction buttons, zap button, embedded
+    // links/images inside NoteContent, etc.). Those handle their own clicks.
+    const target = e.target as HTMLElement;
+    if (target.closest(INTERACTIVE_SELECTOR)) return;
+
+    // Don't navigate while the user is selecting text inside the card.
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) return;
+
+    navigate(`/${nevent}`);
+  };
+
   return (
     <article
       className={cn(
-        "aos-feed-row",
+        "aos-feed-row cursor-pointer transition-colors hover:bg-muted/40",
         isAnnouncement && "aos-feed-row--announcement"
       )}
+      onClick={handleCardClick}
     >
       {isAnnouncement && (
         <div className="flex items-center gap-1.5 mb-2 text-[0.65rem] uppercase tracking-[0.16em] font-semibold text-foreground">
