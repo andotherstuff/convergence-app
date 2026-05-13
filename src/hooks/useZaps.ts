@@ -255,27 +255,24 @@ export function useZaps(
 
       let zapRequest;
       if (profileTarget) {
-        // Profile zap — no `e` / `a` tag, just a `p` tag via `profile`.
+        // Profile zap — no `e` / `a` tag, just a `p` tag derived from
+        // the `pubkey` field. nip57 distinguishes a profile zap from an
+        // event zap by the *absence* of an `event` key, so we must not
+        // pass `event: null` (older nostr-tools versions accepted it,
+        // current ones crash on `params.event.pubkey`).
         zapRequest = nip57.makeZapRequest({
-          profile: profileTarget.pubkey,
-          // `event: null` tells nip57 to omit the event tag entirely.
-          event: null,
+          pubkey: profileTarget.pubkey,
           amount: zapAmount,
           relays,
           comment,
         });
       } else {
-        // Event zap. For addressable events (30000-39999) pass the
-        // object so nip57 adds an `a` tag; otherwise pass the id
-        // string so it adds an `e` tag.
-        const eventParam =
-          (actualTarget!.kind >= 30000 && actualTarget!.kind < 40000)
-            ? actualTarget!
-            : actualTarget!.id;
-
+        // Event zap. Always pass the full event object — nip57 needs
+        // it to extract pubkey, id, kind, and (for addressable kinds)
+        // the `d` tag. Passing just the id string causes
+        // `params.event.kind.toString()` to throw.
         zapRequest = nip57.makeZapRequest({
-          profile: actualTarget!.pubkey,
-          event: eventParam,
+          event: actualTarget!,
           amount: zapAmount,
           relays,
           comment,
