@@ -7,12 +7,38 @@ import {
   type ReactionGroup,
 } from "@/hooks/useReactions";
 
+/**
+ * Input shape for a reaction. Either a string (native emoji, or `+` / `-` /
+ * empty for the canonical "like" / "dislike" forms) or an object carrying
+ * a NIP-30 custom emoji shortcode + image URL.
+ */
+export type ReactionInput =
+  | string
+  | { shortcode: string; url: string };
+
 interface ReactParams {
   target: NostrEvent;
-  /** The display emoji the user clicked. Pass '+' for a like. */
-  emoji: string;
+  /** The emoji the user clicked. See {@link ReactionInput}. */
+  emoji: ReactionInput;
   /** If the user already has this reaction, its event id — used to delete. */
   existingId?: string;
+}
+
+function isCustomReactionInput(
+  v: ReactionInput,
+): v is { shortcode: string; url: string } {
+  return typeof v === "object" && v !== null;
+}
+
+/**
+ * Convert a {@link ReactionInput} into the string value used as the
+ * group key in {@link ReactionGroup}. For native emojis this is the
+ * normalized display form (👍 / 👎 / passthrough); for custom emojis
+ * it's the colon-wrapped shortcode.
+ */
+function inputToDisplay(input: ReactionInput): string {
+  if (isCustomReactionInput(input)) return `:${input.shortcode}:`;
+  return normalizeReactionEmoji(input);
 }
 
 /**
@@ -54,9 +80,21 @@ export function useReact() {
       tags.push(["p", target.pubkey]);
       tags.push(["k", target.kind.toString()]);
 
+      // NIP-30: include the image URL via an `emoji` tag so other
+      // clients can render the reaction. Without it the event is a
+      // malformed custom-emoji reaction and will be filtered out by
+      // `isValidReaction`.
+      let content: string;
+      if (isCustomReactionInput(emoji)) {
+        content = `:${emoji.shortcode}:`;
+        tags.push(["emoji", emoji.shortcode, emoji.url]);
+      } else {
+        content = emoji;
+      }
+
       const event = await publish({
         kind: 7,
-        content: emoji,
+        content,
         tags,
       });
 
@@ -64,7 +102,11 @@ export function useReact() {
     },
     onMutate: async ({ target, emoji, existingId }) => {
       if (!user) return;
-      const displayEmoji = normalizeReactionEmoji(emoji);
+      const displayEmoji = inputToDisplay(emoji);
+      const customUrl = isCustomReactionInput(emoji) ? emoji.url : undefined;
+      const customName = isCustomReactionInput(emoji)
+        ? emoji.shortcode
+        : undefined;
       const key = ["reactions", target.id, user.pubkey];
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<ReactionGroup[]>(key);
@@ -91,9 +133,17 @@ export function useReact() {
             next[idx].count += 1;
             next[idx].mine = true;
             next[idx].pubkeys.push(user.pubkey);
+            // Backfill url/name if this is the first custom-emoji
+            // reaction in an otherwise-empty group.
+            if (!next[idx].url && customUrl) {
+              next[idx].url = customUrl;
+              next[idx].name = customName;
+            }
           } else {
             next.push({
               emoji: displayEmoji,
+              url: customUrl,
+              name: customName,
               count: 1,
               mine: true,
               pubkeys: [user.pubkey],

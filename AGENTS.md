@@ -35,6 +35,12 @@ The feed surfaces a small "via &lt;client&gt;" badge on rendered posts authored 
 
 If you rename the deployment, update `CLIENT_TAG_VALUE` in `useNostrPublish.ts` and add the old value to `SELF_CLIENT_IDS` so historical events stay recognized.
 
+### Custom emoji (NIP-30) reactions
+
+Kind-7 reactions whose content is a `:shortcode:` carry the image URL on a `["emoji", name, url]` tag. The reaction layer goes through `src/lib/customEmoji.ts` (helpers: `isCustomEmoji`, `getCustomEmojiUrl`, `buildEmojiMap`, `isValidReaction`, `resolveReactionEmoji`) and `src/components/CustomEmoji.tsx` (`<CustomEmojiImg>`). Do not hand-roll new shortcode parsing — use these helpers so behavior stays consistent with `NoteContent.tsx`, which already renders custom emojis inside post bodies.
+
+Malformed custom-emoji reactions (shortcode content with no matching `emoji` tag) are dropped by `aggregateReactions` in `src/hooks/useReactions.ts`. When publishing a reaction, pass `{ shortcode, url }` to `useReact` so the outgoing kind-7 event includes the required `emoji` tag automatically.
+
 ### Other shared cross-links
 
 Constants in `src/lib/constants.ts` for website surfaces that do not require auth:
