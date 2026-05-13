@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import {
-  CalendarDays,
-  ExternalLink,
   LogOut,
   Menu,
   Settings as SettingsIcon,
@@ -19,13 +17,13 @@ import {
   type Account,
 } from "@/hooks/useLoggedInAccounts";
 import { genUserName } from "@/lib/genUserName";
-import { PROGRAM_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/announcements", label: "Announcements" },
   { to: "/", label: "Home", end: true },
   { to: "/projects", label: "Projects" },
+  { to: "/schedule", label: "Schedule" },
 ];
 
 function getDisplayName(account: Account): string {
@@ -88,8 +86,8 @@ export function Header() {
               height={40}
             />
             <div className="flex flex-col leading-tight">
-              <span className="text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground font-medium">
-                AOS
+              <span className="text-[0.68rem] uppercase tracking-[0.12em] text-muted-foreground font-medium">
+                And Other Stuff
               </span>
               <span className="text-sm font-semibold tracking-wide text-foreground">
                 Convergence
@@ -172,30 +170,10 @@ export function Header() {
                 "p-2 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
               )}
             >
-              {/* Program — external link to the canonical event
-                  schedule. Opens in a new tab so the user doesn't lose
-                  their place inside the app. Shown at the top of the
-                  menu because it's the single most-referenced link
-                  during the event. */}
-              <a
-                href={PROGRAM_URL}
-                target="_blank"
-                rel="noreferrer noopener"
-                onClick={closeMenu}
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary/60 transition-colors"
-              >
-                <span className="flex items-center justify-center size-8 rounded-full bg-secondary">
-                  <CalendarDays className="size-4 text-muted-foreground" />
-                </span>
-                <span className="text-sm font-medium flex-1">Program</span>
-                <ExternalLink className="size-3.5 text-muted-foreground shrink-0" />
-              </a>
-
-              <div className="h-px bg-border my-2" />
-
               {/* Account section
-                  (On mobile, primary nav lives in the fixed BottomNav —
-                  so the hamburger panel is purely for account actions.) */}
+                  Primary nav (including Schedule) lives in the desktop
+                  thumbnav above and in the mobile BottomNav below — so
+                  this popover is purely for account actions. */}
               {/* Settings link — always visible (notifications etc. don't
                   require login). Rendered as a normal row so its spacing
                   matches other menu items. */}

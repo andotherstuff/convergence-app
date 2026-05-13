@@ -14,8 +14,45 @@ export const ANNOUNCEMENT_TAG = "announcement";
 /** Custom event kind for project showcase submissions (addressable). */
 export const PROJECT_KIND = 38459;
 
-/** External URL for the canonical event program / schedule. */
-export const PROGRAM_URL = "https://convergence.andotherstuff.org/program";
+/**
+ * Canonical AOS Convergence marketing/info website. All long-form event
+ * information — schedule, about, application form, location details — lives
+ * there; the app intentionally does not duplicate it. See BRAND.md in the
+ * website repo for the shared design contract between the two surfaces.
+ */
+export const WEBSITE_URL = "https://convergence.andotherstuff.org";
+
+/** Public program page (high-level overview, no auth required). */
+export const WEBSITE_PROGRAM_URL = `${WEBSITE_URL}/program`;
+
+/**
+ * Public program page anchored at the day-by-day "Event Flow" section.
+ * This is the default schedule destination used everywhere in the app
+ * because it never blocks unapproved visitors. Approved attendees can
+ * click through from the website's /program page to the timed agenda.
+ */
+export const WEBSITE_PROGRAM_FLOW_URL = `${WEBSITE_URL}/program#event-flow`;
+
+/** Full timed agenda on the gated /event page (requires website approval). */
+export const WEBSITE_SCHEDULE_URL = `${WEBSITE_URL}/event#schedule`;
+
+/** About-the-event page on the website. */
+export const WEBSITE_ABOUT_URL = `${WEBSITE_URL}/about`;
+
+/** Application form on the website. */
+export const WEBSITE_APPLY_URL = `${WEBSITE_URL}/interest`;
+
+/**
+ * External URL for the canonical public event program / schedule.
+ *
+ * @deprecated In-app schedule access now lives at `/schedule` and pulls
+ *   the gated schedule from the shared worker (see `src/hooks/useEventDetails.ts`).
+ *   This constant is retained for any remaining links that intentionally
+ *   want to deep-link to the public marketing overview on the website
+ *   (for example, the "See the public overview" fallback shown to
+ *   logged-out users on the in-app Schedule page).
+ */
+export const PROGRAM_URL = WEBSITE_PROGRAM_FLOW_URL;
 
 /**
  * Hex pubkeys of members of the AOS Convergence organizing team.
