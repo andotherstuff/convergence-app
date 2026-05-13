@@ -32,7 +32,11 @@ export function BottomNav() {
       className={cn(
         "md:hidden fixed bottom-0 inset-x-0 z-40",
         "border-t border-border bg-background/95 backdrop-blur-md",
-        "pb-[env(safe-area-inset-bottom)]"
+        // iOS safe-area: home indicator at the bottom, notch on the sides
+        // when held in landscape. With viewport-fit=cover the nav extends
+        // edge-to-edge so we need to pad it back in on all three sides.
+        "pb-[env(safe-area-inset-bottom)]",
+        "pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
       )}
     >
       <ul className="grid grid-cols-4">

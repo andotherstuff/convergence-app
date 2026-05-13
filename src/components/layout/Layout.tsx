@@ -13,8 +13,10 @@ interface LayoutProps {
 export function Layout({ children, hero = false }: LayoutProps) {
   return (
     // Reserve space on mobile for the fixed bottom nav so content and the
-    // footer aren't hidden behind it.
-    <div className="min-h-screen flex flex-col pb-16 md:pb-0">
+    // footer aren't hidden behind it. The nav itself adds bottom safe-area
+    // padding for the iOS home indicator, so this reservation has to account
+    // for both the nav's own ~4rem height AND the safe-area inset.
+    <div className="min-h-screen flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
       <Header />
       <main className={cn("flex-1", hero && "aos-hero-bg")}>{children}</main>
       <Footer />

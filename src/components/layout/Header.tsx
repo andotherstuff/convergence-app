@@ -69,7 +69,7 @@ export function Header() {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-md bg-background/90 border-b border-border">
+    <header className="sticky top-0 z-40 backdrop-blur-md bg-background/90 border-b border-border pt-[env(safe-area-inset-top)]">
       <div className="aos-shell relative">
         <nav className="flex items-center justify-between gap-4 py-3 md:py-4">
           {/* Brand */}
