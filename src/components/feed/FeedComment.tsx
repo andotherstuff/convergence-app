@@ -10,6 +10,7 @@ import { NoteContent } from "@/components/NoteContent";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
 import { InlineReplyForm } from "@/components/feed/InlineReplyForm";
+import { ClientBadge } from "@/components/feed/ClientBadge";
 import { PROJECT_KIND } from "@/lib/constants";
 
 interface FeedCommentProps {
@@ -102,6 +103,7 @@ export function FeedComment({ event }: FeedCommentProps) {
           </Link>
           <span className="text-xs text-muted-foreground">·</span>
           <span className="text-xs text-muted-foreground">{timeAgo}</span>
+          <ClientBadge event={event} />
         </div>
       </header>
 

@@ -1,5 +1,5 @@
 import { useSeoMeta } from "@unhead/react";
-import { AlertCircle, Bell, BellOff, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Bell, BellOff, CheckCircle2, Globe } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import {
   Card,
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
 import { useNotificationPermission } from "@/hooks/useNotificationPermission";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
+import { WEBSITE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const Settings = () => {
@@ -184,6 +185,84 @@ const Settings = () => {
                 emoji="🚀"
               />
             </fieldset>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-start gap-3">
+              <div className="size-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <Globe className="size-5 text-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <CardTitle>Publishing &amp; privacy</CardTitle>
+                <CardDescription>
+                  Where the things you post go.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="rounded-lg border border-border bg-secondary/40 p-4 text-sm text-muted-foreground leading-relaxed">
+              <p>
+                <strong className="text-foreground font-medium">
+                  Heads up:
+                </strong>{" "}
+                this app is a Nostr client. Posts, comments, reactions,
+                and projects you share here publish to the open Nostr
+                network — they are <em>not</em> private to AOS
+                Convergence attendees.
+              </p>
+            </div>
+
+            <ul className="text-sm text-muted-foreground leading-relaxed space-y-2 list-disc pl-5">
+              <li>
+                Anyone running a Nostr client can read, quote, or
+                rebroadcast what you post. There is no "members only"
+                feed.
+              </li>
+              <li>
+                Removing a post sends a NIP-09 deletion request to
+                relays. Most honor it, but copies may persist on relays
+                that don't.
+              </li>
+              <li>
+                Your Nostr identity (npub) is public by design.
+                Don&apos;t post anything you wouldn&apos;t want
+                permanently associated with that key.
+              </li>
+              <li>
+                Each event this app publishes carries a{" "}
+                <code className="text-[0.85em] bg-secondary px-1 py-0.5 rounded">
+                  client
+                </code>{" "}
+                tag with the value{" "}
+                <code className="text-[0.85em] bg-secondary px-1 py-0.5 rounded">
+                  aos-convergence.app
+                </code>{" "}
+                so other clients can show where the post came from.
+              </li>
+            </ul>
+
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              <a
+                href="https://nostr.com"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="aos-nav-link"
+              >
+                Learn about Nostr ↗
+              </a>
+              <a
+                href={WEBSITE_URL}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="aos-nav-link"
+              >
+                Convergence website ↗
+              </a>
+            </div>
           </CardContent>
         </Card>
       </section>

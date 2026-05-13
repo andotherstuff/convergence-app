@@ -230,7 +230,9 @@ const ProjectSubmit = () => {
       ["repo", repo.trim()],
       ["cover", cover!],
       ["t", AOS_HASHTAG],
-      ["client", "aos-convergence"],
+      // `client` tag is added automatically by `useNostrPublish` so the
+      // canonical value (`aos-convergence.app`) stays consistent across
+      // every event this app publishes.
       [
         "alt",
         `AOS Convergence project showcase: ${title.trim()}`,

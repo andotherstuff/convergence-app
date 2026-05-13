@@ -10,6 +10,7 @@ import { NoteContent } from "@/components/NoteContent";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
 import { ZapButton } from "@/components/ZapButton";
+import { ClientBadge } from "@/components/feed/ClientBadge";
 import { cn } from "@/lib/utils";
 
 interface FeedPostProps {
@@ -81,6 +82,7 @@ export function FeedPost({ event, isAnnouncement = false }: FeedPostProps) {
           >
             {timeAgo}
           </Link>
+          <ClientBadge event={event} />
         </div>
       </header>
 

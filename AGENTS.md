@@ -1,5 +1,51 @@
 # Project Overview
 
+This is the **attendee companion app** for AOS Convergence — Oslo 2026, a three-day gathering on May 29–31, 2026.
+
+## Two related projects
+
+This repo (the **app**) is one of two related codebases that share branding, a Cloudflare Worker, and an auth model:
+
+- **App** (this repo) — deployed at `https://aos-convergence.app`. A Nostr-powered companion for attendees: a hashtag-scoped social feed, project showcase, announcements channel, a "now happening" banner, and the in-app schedule view at `/schedule`. Browsing the feed/projects is public; the schedule is gated.
+- **Website** (`aos-convergence` repo) — deployed at `https://convergence.andotherstuff.org`. The marketing/info site with About, the application form, and the same gated schedule served from `/event`.
+
+### Shared schedule data source
+
+Both surfaces fetch the schedule from the same Cloudflare Worker endpoint (`GET ${API_BASE}/api/event`) using NIP-98 HTTP Auth (kind 27235). The user must:
+
+1. Be signed in with Nostr (any login method: NIP-07 extension, nsec, or nostrconnect).
+2. Be on the worker's `APPROVALS` KV list (managed by admins via the website's `/admin` page).
+
+Helpers and types live in:
+
+- `src/lib/apiBase.ts` — `API_BASE` constant (override with `VITE_API_URL`).
+- `src/lib/nip98Auth.ts` — NIP-98 token builder.
+- `src/hooks/useEventDetails.ts` — TanStack Query hook + `EventDetailsData` type + `EVENT_DETAILS_ERRORS` sentinel messages (`NOT_LOGGED_IN`, `NOT_APPROVED`).
+- `src/lib/scheduleNow.ts` — pure functions to flatten the schedule, compute Oslo wall-clock, and match "now happening" against schedule items.
+- `src/components/schedule/NowHappening.tsx` — the persistent banner used on Home + Schedule pages.
+- `src/pages/Schedule.tsx` — the in-app schedule view (handles all four auth states: logged-out, loading, not-approved, approved).
+
+**Rule:** the schedule's data lives on the worker, not in the app's source. Never hardcode schedule items here. If the schedule changes, update `worker/src/index.ts` in the website repo and redeploy. The app picks up new data automatically (5-minute TanStack Query staleTime).
+
+### Client tag on published events
+
+Every event this app publishes carries a `["client", "aos-convergence.app"]` tag (the canonical value is defined in `src/hooks/useNostrPublish.ts` as `CLIENT_TAG_VALUE`). This is added automatically by `useNostrPublish` for every kind it publishes, so call sites do **not** need to add it manually — and doing so will silently get skipped (the helper only adds it when the caller didn't supply one).
+
+The feed surfaces a small "via &lt;client&gt;" badge on rendered posts authored by *other* Nostr clients (see `src/components/feed/ClientBadge.tsx` and `src/lib/clientTag.ts`). Posts from this app — and posts with no `client` tag — render no badge. The set of values recognized as "native" is in `SELF_CLIENT_IDS`; it includes both the current value and the legacy short value `aos-convergence` so older project events stay un-badged.
+
+If you rename the deployment, update `CLIENT_TAG_VALUE` in `useNostrPublish.ts` and add the old value to `SELF_CLIENT_IDS` so historical events stay recognized.
+
+### Other shared cross-links
+
+Constants in `src/lib/constants.ts` for website surfaces that do not require auth:
+
+- `WEBSITE_URL`, `WEBSITE_PROGRAM_URL`, `WEBSITE_PROGRAM_FLOW_URL`, `WEBSITE_SCHEDULE_URL`, `WEBSITE_ABOUT_URL`, `WEBSITE_APPLY_URL`.
+- `PROGRAM_URL` is a deprecated alias used only for the "See the public overview" fallback shown to logged-out users on the Schedule page.
+
+Shared design tokens (colors, radii, eyebrow patterns, header lockup) are documented in `BRAND.md` at the root of the website repo. Keep both surfaces visually aligned when making changes.
+
+## Technology Stack
+
 This project is a Nostr client application built with React 19.x, TailwindCSS 4.x, Vite, shadcn/ui, and Nostrify.
 
 ## Technology Stack

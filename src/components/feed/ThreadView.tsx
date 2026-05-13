@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NoteContent } from "@/components/NoteContent";
 import { ReactionBar } from "@/components/reactions/ReactionBar";
 import { LoginArea } from "@/components/auth/LoginArea";
+import { ClientBadge } from "@/components/feed/ClientBadge";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNostrPublish } from "@/hooks/useNostrPublish";
@@ -161,6 +162,7 @@ function RootPost({ event }: { event: NostrEvent }) {
             )}
             {nip05 && <span>·</span>}
             <span>{timeAgo}</span>
+            <ClientBadge event={event} />
           </div>
         </div>
       </header>
@@ -218,6 +220,7 @@ function ReplyCard({ event }: { event: NostrEvent }) {
           >
             {timeAgo}
           </Link>
+          <ClientBadge event={event} />
         </div>
       </header>
 

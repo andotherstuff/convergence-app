@@ -30,7 +30,7 @@ plaintext. This is **required** and must be non-empty.
 | `zapstore`| No       | No      | Optional Zapstore app ID (Android package name in reverse-domain notation, e.g. `com.example.app`). Matches the `d` tag of the corresponding NIP-82 kind-32267 app event. When present, clients can show a "Get on Zapstore" deep link. |
 | `t`       | Yes      | No      | Hashtag — always `aosconvergence` (lowercase)                            |
 | `alt`     | Yes      | No      | Human-readable fallback description (per NIP-31)                         |
-| `client`  | Yes      | No      | Publisher identifier — always `aos-convergence`                          |
+| `client`  | Yes      | No      | Publisher identifier — always `aos-convergence.app`. Older project events may carry the legacy value `aos-convergence`; both are recognized as native by this app. |
 
 ### Validation
 
@@ -81,7 +81,7 @@ For display in trust-sensitive contexts (editing, deletion), queries should
     ["zapstore", "com.example.highlighter"],
     ["t", "aosconvergence"],
     ["alt", "AOS Convergence project showcase: Highlighter"],
-    ["client", "aos-convergence"]
+    ["client", "aos-convergence.app"]
   ],
   "sig": "…"
 }

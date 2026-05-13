@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { CommentForm } from './CommentForm';
 import { NoteContent } from '@/components/NoteContent';
 import { ReactionBar } from '@/components/reactions/ReactionBar';
+import { ClientBadge } from '@/components/feed/ClientBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -144,7 +145,10 @@ export function Comment({ root, comment, depth = 0, maxDepth = 3, limit }: Comme
                   >
                     {displayName}
                   </Link>
-                  <p className="text-xs text-muted-foreground">{timeAgo}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <span>{timeAgo}</span>
+                    <ClientBadge event={comment} />
+                  </p>
                 </div>
               </div>
             </div>

@@ -1,6 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Image as ImageIcon, Loader2, Megaphone, Send } from "lucide-react";
+import {
+  Globe,
+  Image as ImageIcon,
+  Loader2,
+  Megaphone,
+  Send,
+} from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAuthor } from "@/hooks/useAuthor";
 import { useNostrPublish } from "@/hooks/useNostrPublish";
@@ -15,6 +21,11 @@ import {
 import { EmojiTextarea } from "@/components/EmojiTextarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { LoginArea } from "@/components/auth/LoginArea";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +64,10 @@ export function Compose({
   const [content, setContent] = useState("");
   const [imetaTags, setImetaTags] = useState<string[][]>([]);
   const [asAnnouncementToggle, setAsAnnouncementToggle] = useState(false);
+  // Attached-image permission gate. Reset to false on every new upload —
+  // the author has to re-affirm consent for each picture they add. Posts
+  // without any image bypass the gate entirely.
+  const [photoConsent, setPhotoConsent] = useState(false);
 
   // Locked mode always wins; otherwise fall back to the checkbox state.
   const asAnnouncement = announcementLocked || asAnnouncementToggle;
@@ -66,7 +81,8 @@ export function Compose({
           </p>
           <p className="text-sm text-muted-foreground">
             Sign in with your Nostr account to post to the {tagDisplay}{" "}
-            feed.
+            feed. Everything you share publishes to the open Nostr
+            network — visible to anyone, not just attendees.
           </p>
         </div>
         <LoginArea className="self-start md:self-auto" />
@@ -85,6 +101,8 @@ export function Compose({
   const isAosOrganizer = isAosTag && isOrganizer(user.pubkey);
   const showAnnouncementToggle = isAosOrganizer && !announcementLocked;
 
+  const hasImage = imetaTags.length > 0;
+
   const handleImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -94,6 +112,9 @@ export function Compose({
       const imeta = tags.map(([name, value]) => `${name} ${value}`);
       setImetaTags((prev) => [...prev, ["imeta", ...imeta]]);
       setContent((c) => (c.trim() ? c.trim() + "\n\n" + url : url));
+      // Force the author to affirm consent again whenever a new image
+      // is attached, even if a previous image had already been confirmed.
+      setPhotoConsent(false);
       toast({ title: "Image uploaded" });
     } catch (err) {
       toast({
@@ -110,6 +131,18 @@ export function Compose({
     e.preventDefault();
     const trimmed = content.trim();
     if (!trimmed) return;
+
+    // Defensive: the submit button is also disabled in this case, but
+    // guard here so keyboard submit (Enter on the button) can't bypass.
+    if (hasImage && !photoConsent) {
+      toast({
+        title: "Confirm photo permission",
+        description:
+          "Please confirm you have permission from everyone in the photo before posting.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Ensure the hashtag appears in the content so it shows up in clients that
     // only linkify the text, and also add a t-tag for relay-level filtering.
@@ -136,6 +169,7 @@ export function Compose({
       });
       setContent("");
       setImetaTags([]);
+      setPhotoConsent(false);
       if (!announcementLocked) setAsAnnouncementToggle(false);
       toast({ title: asAnnouncement ? "Announcement posted!" : "Posted!" });
       if (isAosTag) {
@@ -153,7 +187,11 @@ export function Compose({
     }
   };
 
-  const canSubmit = content.trim().length > 0 && !isPublishing && !isUploading;
+  const canSubmit =
+    content.trim().length > 0 &&
+    !isPublishing &&
+    !isUploading &&
+    (!hasImage || photoConsent);
 
   return (
     <form
@@ -180,7 +218,7 @@ export function Compose({
               (asAnnouncement
                 ? "Write an announcement to the convergence…"
                 : isAosTag
-                ? "Share something with the convergence…"
+                ? "Share something about the convergence…"
                 : `Post to ${tagDisplay}…`)
             }
             rows={3}
@@ -189,6 +227,30 @@ export function Compose({
           />
         </div>
       </div>
+
+      {/* Photo permission gate. Only renders when at least one image is
+          attached. The author must affirm they have consent from every
+          identifiable person before the Post button re-enables. */}
+      {hasImage && (
+        <label
+          className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground bg-secondary/40 border border-border rounded-md p-3 cursor-pointer"
+          htmlFor="photo-consent"
+        >
+          <input
+            id="photo-consent"
+            type="checkbox"
+            checked={photoConsent}
+            onChange={(e) => setPhotoConsent(e.target.checked)}
+            className="mt-0.5 size-3.5 shrink-0 accent-foreground cursor-pointer"
+          />
+          <span>
+            <span className="text-foreground font-medium">
+              I confirm I have permission
+            </span>{" "}
+            to upload this publicly from everyone who appears in the photo.
+          </span>
+        </label>
+      )}
 
       <div className="flex items-center justify-between gap-2 border-t border-border pt-3 flex-wrap">
         <div className="flex items-center gap-3">
@@ -244,6 +306,26 @@ export function Compose({
               <span className="hidden sm:inline">Announcement</span>
             </span>
           )}
+
+          {/* Subtle "this is public" disclosure. The icon + tooltip
+              carry the full explanation; the visible label stays small
+              so the composer footer doesn't feel preachy. */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground cursor-help"
+                aria-label="About where this posts"
+              >
+                <Globe className="size-3.5" />
+                <span>Public on Nostr</span>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs text-xs leading-relaxed">
+              Posts on this app are published to the open Nostr network.
+              Anyone can read them — including people not at AOS
+              Convergence — and they're effectively permanent.
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <div className="flex items-center gap-3">
