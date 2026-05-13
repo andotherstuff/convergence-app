@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import {
   WEBSITE_ABOUT_URL,
-  WEBSITE_APPLY_URL,
   WEBSITE_URL,
 } from "@/lib/constants";
 
@@ -34,14 +33,6 @@ export function Footer() {
               className="aos-nav-link"
             >
               About ↗
-            </a>
-            <a
-              href={WEBSITE_APPLY_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="aos-nav-link"
-            >
-              Apply ↗
             </a>
             <a
               href={WEBSITE_URL}
