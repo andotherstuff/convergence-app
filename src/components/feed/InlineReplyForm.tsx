@@ -165,7 +165,7 @@ export function InlineReplyForm({
             rows={2}
             autoFocus
             disabled={isBusy}
-            className="resize-none text-sm min-h-0 py-1.5"
+            className="resize-none text-base md:text-sm min-h-0 py-1.5"
             maxLength={2000}
             mentionSeedPubkeys={[parent.pubkey]}
           />

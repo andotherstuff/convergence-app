@@ -234,7 +234,7 @@ export function Compose({
                 : `Post to ${tagDisplay}…`)
             }
             rows={3}
-            className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-[0.95rem] placeholder:text-muted-foreground/70"
+            className="resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-0 text-base md:text-[0.95rem] placeholder:text-muted-foreground/70"
             maxLength={4000}
             mentionSeedPubkeys={mentionSeedPubkeys}
           />
